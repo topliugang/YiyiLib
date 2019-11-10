@@ -100,11 +100,48 @@ def hebingpdf(input_paths, output_path):
         output.write(output_file)
     print("### PDF hebing completed!")
 
+def fuck2(card_url):
+    yiyi_request = YiyiRequests()
+    # card_url = 'http://ffhgfc36ddccdc234f5bb9216d41432f11ddhfknpu959v5uo6fb9.fgzi.wap.gxlib.org/book/card?cnFenlei=TS273&ssid=14424477&d=0e2a9c041ca6a37782e6b74ffb90e993&isFromBW=true&isjgptjs=false'
+    r = yiyi_request.get(card_url)
+    span = Selector(response=r).css('span.zli_i_web')[0]
+    ahref = span.css('a::attr(href)').get()
+    netloc = urlparse.urlparse(card_url).netloc
+    scheme = urlparse.urlparse(card_url).scheme
+    # 取得pdf阅读按钮的完全地址
+    jpathreader_url = '%s://%s%s' % (scheme, netloc, ahref)
+    #print jpathreader_url
+    r = yiyi_request.get(jpathreader_url)
+    # with codecs.open('fuck.html', 'w', encoding='utf-8') as fuck_file:
+    #     fuck_file.write(r.text)
+    # selector = Selector(response=r)
+    jpg_path = re.search('jpgPath: ".+",', r.text).group()[10:-2]
+    start_page, end_page = re.search("ps: '\d+-\d+',", r.text).group()[5:-2].split('-')
+    start_page = int(start_page)
+    end_page = int(end_page)
+    netloc = urlparse.urlparse(r.url).netloc
+    scheme = urlparse.urlparse(r.url).scheme
+
+    jpg_url_template = '%s://%s%s%%sd?zoom=2' % (scheme, netloc, jpg_path)
+    print jpg_url_template
+    # for i in range(start_page, end_page+1):
+    #     url = jpg_url_template%(str('%.6d'%i))
+    #     yiyi_request.download(url, './jpg/%d.jpg'%i)
+    url = jpg_url_template % 'leg001'
+    yiyi_request.download(url, './jpg/leg001.jpg')
+    url = jpg_url_template % 'cov001'
+    yiyi_request.download(url, './jpg/cov001.jpg')
+    url = jpg_url_template % 'cov002'
+    yiyi_request.download(url, './jpg/cov002.jpg')
+
+        #print url
+
+
 
 
 if __name__ == '__main__':
-    fuck('http://ffhgfc36ddccdc234f5bb9216d41432f11ddh50xfcc50xpno6pnw.fgzi.wap.gxlib.org/book/card?cnFenlei=S571.2&ssid=96058569&d=c425038078be4b354103fcab4beba3d8&isFromBW=true&isjgptjs=false')
-
+    #fuck('http://ffhgfc36ddccdc234f5bb9216d41432f11ddh6vk9unuobxw56n69.fgzi.wap.gxlib.org/book/card?cnFenlei=A841.68&ssid=13680758&d=bd2d9b7e4b4d6a2861e036bc492e7bdf&isFromBW=true&isjgptjs=false')
+    fuck2('http://ffhgfc36ddccdc234f5bb9216d41432f11ddh5b50p9x5960f6xuc.fgzi.wap.gxlib.org/book/card?cnFenlei=J657.412-52&ssid=13175268&d=94308218e2cd25ef85fe7216d8240fb0&isFromBW=false&isjgptjs=false')
     #input = PdfFileReader(open('./temp/4.pdf', 'rb'))
 
     exit()
