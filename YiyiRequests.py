@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 import scrapy
 from scrapy.selector import Selector
 from scrapy.http import HtmlResponse
-
+import json
 import re
 
 from PyPDF2 import PdfFileReader, PdfFileWriter
@@ -122,27 +122,55 @@ def fuck2(card_url):
     netloc = urlparse.urlparse(r.url).netloc
     scheme = urlparse.urlparse(r.url).scheme
 
-    jpg_url_template = '%s://%s%s%%sd?zoom=2' % (scheme, netloc, jpg_path)
+    [[a1,b1],[a2,b2],[a3,b3],[a4,b4],[a5,b5],[a6,b6],[a7,b7],[a8,b8]] = json.loads(re.search(r'var pages = \[.*\];', r.text).group()[12:-1])
+    jpg_codes = []
+    for i in range(a1, a1 + b1 + 1):
+        jpg_codes.append('cov%.3d' % i)
+    for i in range(a2, a2 + b2):
+        jpg_codes.append('bok%.3d' % i)
+    for i in range(a3, a3 + b3):
+        jpg_codes.append('leg%.3d' % i)
+    for i in range(a4, a4 + b4):
+        jpg_codes.append('fow%.3d' % i)
+    for i in range(a5, a5 + b5):
+        jpg_codes.append('!%.5d' % i)
+    for i in range(a6, a6 + b6):
+        jpg_codes.append('%.6d' % i)
+    for i in range(a7, a7 + b7):
+        jpg_codes.append('att%.3d' % i)
+    for i in range(a8, a8 + b8 - 1):
+        jpg_codes.append('cov%.3d' % i)
+
+    jpg_url_template = '%s://%s%s%%s?zoom=2' % (scheme, netloc, jpg_path)
     print jpg_url_template
-    # for i in range(start_page, end_page+1):
-    #     url = jpg_url_template%(str('%.6d'%i))
-    #     yiyi_request.download(url, './jpg/%d.jpg'%i)
-    url = jpg_url_template % 'leg001'
-    yiyi_request.download(url, './jpg/leg001.jpg')
-    url = jpg_url_template % 'cov001'
-    yiyi_request.download(url, './jpg/cov001.jpg')
-    url = jpg_url_template % 'cov002'
-    yiyi_request.download(url, './jpg/cov002.jpg')
 
-        #print url
+    for jpg_code in jpg_codes:
+        url = jpg_url_template%(jpg_code)
+        yiyi_request.download(url, './jpg/%s.jpg'%jpg_code)
 
+def fuck3(url):
+    # yiyi_request = YiyiRequests()
+    # r = yiyi_request.get(url)
+    # with open('card.html', 'w') as cardfile:
+    #     cardfile.write(r.content)
+    with open('card.html', 'r') as cardfile:
+        html = cardfile.read()
+        selector = Selector(text=html)
+        title = selector.css('h2.zli_i_h2::text').extract_first()
+        theme = selector.css('p.zli_i_tt::text').extract_first()
+        print len(selector.css('li.zli_info'))
+
+        # for sb in selector.css('em.zli_i_field::text').extract():
+        #     print sb
 
 
 
 if __name__ == '__main__':
     #fuck('http://ffhgfc36ddccdc234f5bb9216d41432f11ddh6vk9unuobxw56n69.fgzi.wap.gxlib.org/book/card?cnFenlei=A841.68&ssid=13680758&d=bd2d9b7e4b4d6a2861e036bc492e7bdf&isFromBW=true&isjgptjs=false')
-    fuck2('http://ffhgfc36ddccdc234f5bb9216d41432f11ddh5b50p9x5960f6xuc.fgzi.wap.gxlib.org/book/card?cnFenlei=J657.412-52&ssid=13175268&d=94308218e2cd25ef85fe7216d8240fb0&isFromBW=false&isjgptjs=false')
+    #fuck2('http://ffhgfc36ddccdc234f5bb9216d41432f11ddhxfufxnoubbfb6kon.fgzi.wap.gxlib.org/book/card?cnFenlei=TS273&ssid=13044240&d=79b72251f15ad256652e6b831874bb90&isFromBW=false&isjgptjs=false')
     #input = PdfFileReader(open('./temp/4.pdf', 'rb'))
+
+    fuck3('http://ffhgfc36ddccdc234f5bb9216d41432f11ddhxfufxnoubbfb6kon.fgzi.wap.gxlib.org/book/card?cnFenlei=TS273&ssid=13044240&d=79b72251f15ad256652e6b831874bb90&isFromBW=false&isjgptjs=false')
 
     exit()
 

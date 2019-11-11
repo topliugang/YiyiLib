@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>汇雅书世界-精品咖啡学  上  浅焙、单品、庄园豆  第三波精品咖啡大百科</title>
+<link rel="stylesheet" type="text/css" href="/static/style/front/basic/basic.css">
+<link rel="stylesheet" type="text/css" href="/static/style/front/book/search.css">
+<link rel="stylesheet" type="text/css" href="/static/style/front/book/card.css">
+<link rel="stylesheet" type="text/css" href="/static/style/front/home/global.css">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+<script type="text/javascript" src="/static/js/requirejs/require.js"></script>
+<script type="text/javascript" src="/static/js/front/common/main.js"></script></head>
+<body>
+<div class="topHeader">
+  <div class="topHead">
+    <div class="rightF">
+                            <span>欢迎来自&nbsp;广西壮族自治区图书馆&nbsp;的<em>用户</em></span>
+        <span class="zn_l_layout">
+			<a id="logout" href="javascript:void(0);">退出</a>
+		</span>
+          </div>
+  </div>
+</div>
+<div class="header">
+  <div class="head"  style="background:url(http://ffhgfc36ddccdc234f5bb9216d41432f11ddhxfufxnoubbfb6kon.fgzi.wap.gxlib.org//static/logo/112/gxzz112.jpg) center 0 no-repeat;">
+    <div class="logo">
+          </div>
+      </div>
+  <div class="nav">
+    <ul>
+      <li   class="cur" ><a href="/" target="_top">首页</a></li>
+    
+      <li ><a href="/ssreader/download" target="_top">客户端下载</a></li>
+      <li ><a href="/help/index" target="_top">使用帮助</a></li>
+      <!-- <li ><a href="/authorize/index" target="_top">联系授权</a></li> -->
+    </ul>
+  </div>
+</div>
+<script type="text/javascript">
+  require(['jquery'], function () {
+    'use strict';
+    //退出
+    $('#logout').click(function () {
+      $.ajax({
+        url: '/ztk/logout.jsp',
+        type: 'post',
+        complete: function () {
+          window.location.href = '/user/login/logout?backurl=/user/login/showlogin';
+        }
+      });
+    });
+    $('.hsearch form').on('submit', function () {
+      if ($.trim($('.userTxt').val()) == '') {
+        return false;
+      }
+      return true;
+    });
+
+    $('.rdtoggle a').click(function () {
+      var state = 0;
+      var s = $(this).attr('id');
+      var b = $(this).hasClass('cur');
+      if (!b && s == 'rendahy') {
+        state = 1;
+      }
+      if (!b && s == 'rendabw') {
+        state = 2;
+      }
+      $.post('/custom/renda', {state: state}, function (data) {
+        if (!data.success) {
+          return;
+        }
+      });
+      if (b) {
+        $(this).removeClass('cur')
+      } else {
+        $(this).siblings().removeClass('cur')
+        $(this).addClass('cur');
+      }
+    })
+
+    $('.g_bnt').click(function () {
+      location.href = '/book/search/toadvsearch';
+    })
+  });
+</script>
+<div class="zcenter1000">
+	<div class="zbgw">
+	<div class="zn_advance"  style="display:none;" >
+		<form action="/book/search" method="get">
+		<input type="hidden" name="searchtype" value="1"/>
+		<input type="hidden" id="search_classifyName" name="classifyName" value=""/>
+		
+		<div class="zn_a_abs">
+			<div class="zn_a_bg">
+				<ul class="fl zn_a_box">
+					<li class="zn_a_li"><span class="zn_a_namel">书名</span><input type="text" name="bookname" value="" class="zn_a_b1 zn_w320"></li>
+					<li class="zn_a_li"><span class="zn_a_namel">作者</span><input type="text" name="author" value="" class="zn_a_b1 zn_w320"></li>
+					<li class="zn_a_li"><span class="zn_a_namel">主题词</span><input type="text" name="keyword" value="" class="zn_a_b1 zn_w320"></li>
+					<li class="zn_a_li">
+						<span class="zn_a_namel">年代</span>
+						<select id="search_startyear" name="startyear" class="zn_a_b1 zn_w113" value="">
+							<option value="">请选择</option>
+						</select>
+						至
+						<select id="search_endyear" name="endyear" class="zn_a_b1 zn_w132" value="">
+							<option value="">请先选择开始年代</option>
+						</select>
+					</li>
+				</ul>
+				<ul class="fr zn_a_box">
+					<li class="zn_a_li">
+						<span class="zn_a_namer">分类</span>
+						<select class="zn_a_b1 zn_w320" name="classifyId" id="search_select_fenlei">
+							<option value="">全部</option>
+														<option value="01">马克思主义、列宁主义、毛泽东思想、邓小平理论</option>
+														<option value="02">哲学、宗教</option>
+														<option value="03">社会科学总论</option>
+														<option value="04">政治、法律</option>
+														<option value="05">军事</option>
+														<option value="06">经济</option>
+														<option value="07">文化、科学、教育、体育</option>
+														<option value="08">语言、文字</option>
+														<option value="09">文学</option>
+														<option value="10">艺术</option>
+														<option value="11">历史、地理</option>
+														<option value="12">自然科学总论</option>
+														<option value="13">数理科学和化学</option>
+														<option value="14">天文学、地球科学</option>
+														<option value="15">生物科学</option>
+														<option value="16">医药、卫生</option>
+														<option value="17">农业科学</option>
+														<option value="18">工业技术</option>
+														<option value="19">交通运输</option>
+														<option value="20">航空、航天</option>
+														<option value="21">环境科学、安全科学</option>
+														<option value="22">综合性文献</option>
+													</select>
+					</li>
+					<li class="zn_a_li"><span class="zn_a_namer">中图分类号</span><input type="text" name="cnFenlei" value="TS273" class="zn_a_b1 zn_w320"></li>
+					<li class="zn_a_li">
+						<span class="zn_a_namer">搜索结果显示条数</span>
+						<select name="pagesize" class="zn_a_b1 zn_w320">
+							<option value="10" >每页显示10条</option>
+							<option value="15" >每页显示15条</option>
+							<option value="20" >每页显示20条</option>
+						</select>
+					</li>
+					<li class="zn_a_li">
+						<input type="submit" value="检索" class="zn_a_submit">
+												<a class="zn_a_tab" href="javascript:void(0)">普通检索</a>
+											</li>
+				</ul>
+				<div class="clear"></div>
+			</div>
+		</div>
+		</form>
+	</div>
+	<div class="zn_search" >
+		<form action="/book/search" method="get">
+			<div class="zn_s_bg">
+				<input class="zn_s_text" type="text" name="sw" value="" />
+				<input class="zn_s_submit" type="submit" value="" />
+								<span class="zn_s_show"><a href="javascript:void(0);" class="btn_advance_search">高级检索</a></span>
+			</div>
+			<p class="zn_s_radio">
+				<input id="field_bookname" name="field" type="radio" value="1"  checked="checked" /><label for="field_bookname">书名</label>
+				<input id="field_author" name="field" type="radio" value="2" /><label for="field_author">作者</label>
+									<input id="field_dir" name="field" type="radio" value="8" /><label for="field_dir">目录</label>
+					<input id="field_fulltext" name="field" type="radio" value="all" /><label for="field_fulltext">全文检索</label>
+							</p>
+		</form>
+	</div>
+	<form id="book_search_form">
+		<input type="hidden" name="sw" value="" />
+		<input type="hidden" name="allsw" value="" />
+		<input type="hidden" name="searchtype" value="" />
+		<input type="hidden" name="classifyId" value="" />
+		<input type="hidden" name="isort" value="" />
+		<input type="hidden" name="field" value="" />
+		<input type="hidden" name="jsonp" value="" />
+		<input type="hidden" name="showcata" value="" />
+		<input type="hidden" name="expertsw" value="" />
+		<input type="hidden" name="bCon" value="" />
+		<input type="hidden" name="page" value="1" />
+		<input type="hidden" name="pagesize" value="10" />
+		<input type="hidden" name="sign" value="" />
+		<input type="hidden" name="enc" value="" />
+	</form>
+</div>
+
+<script>
+require(['jquery', 'defalutInput', 'layer'], function($, defalutInput) {
+
+	defalutInput({
+		node:'.zn_s_text',
+		text: '请输入要检索关键词'
+	});
+	
+	//隐藏高级检索
+	$('.zn_a_tab').click(function(){
+		$('.zn_advance').slideUp();
+		$('.zn_search').slideDown();
+	});
+	
+	//显示高级检索
+	$('.zn_s_show .btn_advance_search').click(function(){
+		$('.zn_search').slideUp();
+		$('.zn_advance').slideDown();
+	});
+	
+	// 选择分类时设置隐藏字段分类名称
+	$('#search_select_fenlei').on('change', function() {
+		$('#search_classifyName').val($('#search_select_fenlei option:selected').text());
+	});
+	
+	// 验证高级检索词不为空
+	$('.zn_advance form').on('submit', function() {
+		if (($('.zn_advance [name=bookname]').val().trim() == '') 
+			&& ($('.zn_advance [name=author]').val().trim() == '') 
+			&& ($('.zn_advance [name=keyword]').val().trim() == '')
+			&& ($('.zn_advance [name=cnFenlei]').val().trim() == '')) {
+			layer.alert('请输入除年代和分类之外的检索项！',-1);
+			return false;
+		}
+		
+		return true;
+	});
+	
+	// 验证检索词不为空
+	$('.zn_search form').on('submit', function() {
+		if ($.trim($('.zn_search form input[name=sw]').val()) == '') {
+			return false;
+		}
+		
+		return true;
+	});
+	
+	//二次检索 生成二次检索词规则
+	$('.zn_s_show .btn_double_search').click(function(){
+		
+		var sallsw = ''; //上次检索内容
+		var data = eval('(' + $(this).attr('data') + ')');
+		var oallsw = {};
+		
+		oallsw[data.field] = data.sw;
+		
+		if (sallsw) {
+			var aallsw = sallsw.substring(1, sallsw.length -1).replace(/#/ig, '').split(',');
+			for (var i = 0, len = aallsw.length; i < len; i ++) {
+				if (aallsw[i]) {
+					oallsw[aallsw[i].substring(0, 1)] = aallsw[i].substring(1);
+				}
+			}
+		}
+		
+		var allsw = new Array();
+		
+		allsw.push('(');
+		for (var k in oallsw) {
+			allsw.push('#,' + k);
+			allsw.push(oallsw[k]);
+		}
+		allsw.push('#,' + data.field);
+		allsw.push(data.sw);
+		allsw.push(')');
+		
+		//$('.zn_search form input[name=allsw]').val(allsw.join(''));
+		$('.zn_search form input[name=allsw]').val(allsw.join(''));
+		$('.zn_search form input[name=bCon]').val('y');
+		$('.zn_search form').submit();
+	});
+	
+	//添加option
+	function addOption(sel, i, selVal) {
+		var option = document.createElement('option');
+		var text = i== '' ? '请先选择开始年' : (i == 1979 ? '小于1980' : i) + '年';
+		
+		option.value = i;
+		
+		if (document.all) {
+			option.innerText = text;
+		} else {
+			option.textContent = text;
+		}
+		
+		if (selVal == i) {
+			option.setAttribute('selected', 'selected');
+		}
+		
+		sel.append(option);
+	}
+	
+	//设置结束年
+	function setEndYear() {
+		var startYearSel = $('#search_startyear');
+		var startYearVal = startYearSel.val();
+		var endYearSel = $('#search_endyear');
+		var endYearVal = endYearSel.attr('value');
+		
+		endYearSel.empty();
+		
+		if (startYearVal == '') {
+			addOption(endYearSel, '', endYearVal);
+		} else if (startYearVal == '1979') {
+		//修改：当开始年选择 小于1980时，只支持1980之前的检索
+			var option = document.createElement('option');
+			option.value = '1979';
+			option.textContent = '--';
+			endYearSel.append(option);
+		} else {
+			for (var i = new Date().getFullYear(); i >= startYearVal; i--) {
+				addOption(endYearSel, i, endYearVal);
+			}
+		}
+	}
+	
+	//设置开始年
+	function setStartYear() {
+		var startYearSel = $('#search_startyear');
+		var startYearVal = startYearSel.attr('value');
+		
+		for (var i = new Date().getFullYear(); i >= 1979; i--) {
+			addOption(startYearSel, i, startYearVal);
+		}
+		
+		startYearSel.on('change', function() {
+			setEndYear();
+		});
+	}
+	
+	// 初始化时间选择
+	setStartYear();
+	setEndYear();
+	
+	// 获取链接中的参数
+	function getQuery(str, k) {
+		var reg = new RegExp('(^|&)' + k + '=([^&]*)(&|$)', 'i');  
+		var r = str.match(reg);  
+		
+		if (r != null) {
+			return decodeURIComponent(r[2]);
+		}
+		
+		return null; 
+	}
+	
+	// 如果是高级检索，生成专业检索词
+	var advanceForm = $('.zn_advance form').first();
+	if (advanceForm.css('display') == 'block') {
+		var params = advanceForm.serialize();
+		var bookname = getQuery(params, 'bookname');
+		var author = getQuery(params, 'author');
+		var keyword = getQuery(params, 'keyword');
+		var startyear = getQuery(params, 'startyear');
+		var endyear = getQuery(params, 'endyear');
+		var cnFenlei = getQuery(params, 'cnFenlei');
+		var ssw = new Array();
+		var ysw = new Array();
+		var expertsw = new Array();
+		
+		bookname && ssw.push('T=' + bookname);
+		author && ssw.push('A=' + author);
+		keyword && ssw.push('K=' + keyword);
+		cnFenlei && ssw.push('BKl=' + cnFenlei);
+		startyear && endyear && ysw.push(startyear + '<=Y<=' + endyear);
+		
+		if (ssw.length > 0) {
+			expertsw.push('(');
+			expertsw.push(ssw.join('*'));
+			expertsw.push(')');
+		}
+		
+		if (ysw.length > 0) {
+			if (expertsw.length > 0) {
+				expertsw.push('*');
+			}
+			expertsw.push('(');
+			expertsw.push(ysw.join(''));
+			expertsw.push(')');
+		}
+		
+		$('#book_search_form input:hidden[name=expertsw]').val(expertsw.join(''));
+	}
+	
+	function hideOrShowSort(val) {
+		if ('all' == val) {
+			$('#zsort').hide();
+		} else {
+			$('#zsort').show();
+		}
+	}
+	
+	$('.zn_s_radio input').on('click', function() {
+		hideOrShowSort($(this).val());
+	});
+	
+	hideOrShowSort($('.zn_s_radio input:checked').val());
+});
+</script>	<!--ranking start-->
+	<div class="zpt11">
+		<h2 class="ztbg"></h2>
+		<div class="zranking zbgw">
+			<div class="zcomm zbgw">
+				<ul class="clearfix">
+					<li class="fl zli_img"><a href="javascript:void(0);"><img class="zf_vm" src="http://ffhg74f38187e1a84f36a8e7b4df546360bfsxfufxnoubbfb6kon.fgzi.wap.gxlib.org/coverNew/CoverNew.dll?iid=686A66676B6B66696B675DAAAAA3A099A998A9B05D683139393138393737" width="116" height="163" /></a></li>
+					<li class="fl zli_info zco_info" style="position:relative;">
+						<h2 class="zli_i_h2" title="精品咖啡学  上  浅焙、单品、庄园豆  第三波精品咖啡大百科">精品咖啡学  上  浅焙、单品、庄园豆  第三波精品咖啡大百科</h2>
+												<p class="zli_i_tt">主题词&nbsp;咖啡-基本知识</p>
+																		<p><em class="zli_i_field">作者</em>韩怀宗著</p>
+																		<p><em class="zli_i_field">页数</em>365</p>
+																		<p><em class="zli_i_field">出版时间</em>2012.09</p>
+																		<p><em class="zli_i_field">出版社</em>北京：中国戏剧出版社</p>
+																		<p><em class="zli_i_field">中图分类号</em>TS273</p>
+												
+						<dl class="clearfix zli_i_btn">
+							<dd class="fl">
+																	<span class="zli_i_reader"><a href="/reader/pdg/pdgreader?ssid=13044240&d=8540188e510c73443a388ede2222f22e&s=1" title="提示：需安装超星阅读器" target="pdgurl">阅读器阅读</a></span>
+									<span class="zli_i_web"><a href="/reader/jpath/jpathreader?ssid=13044240&d=fa3ac10086e398ad813d3028ddbbc9e6" target="_blank">网页阅读</a></span>
+															</dd>
+						
+														<dd class="fr zli_i_media">
+																											<span class="zli_i_down"><i></i><a href="/reader/pdg/pdgreader?ssid=13044240&d=8540188e510c73443a388ede2222f22e&s=2" title="提示：需安装超星阅读器" target="pdgurl">下载本书</a><em>|</em></span>
+																									
+								<span class="zli_i_corr"><i></i><a href="javascript:void(0)" data="{book:'精品咖啡学  上  浅焙、单品、庄园豆  第三波精品咖啡大百科', option:'纠错', ssid:'13044240'}">纠错</a><em>|</em></span>
+								<span class="zli_i_comm"><i></i><a href="javascript:void(0)" data="{book:'精品咖啡学  上  浅焙、单品、庄园豆  第三波精品咖啡大百科', option:'评论', ssid:'13044240'}">评论</a></span>
+							</dd>
+													</dl>
+					</li>
+				</ul>
+				<div  id="jgdivv"  style="display: none;line-height: 16px; width: 200px; background-color: rgb(223, 233, 247); padding: 10px 8px; border: 1px solid rgb(204, 204, 204);  left: 620px; z-index: 10; position: absolute;">
+									<div >
+										您正在向图书馆提交推荐图书馆购买本书的请求，请填写购买原因（限200字，不填写原因请直接点击“推荐”进行提交）:<br/>
+										<textarea class="nouse"   cols="25" rows="5" id="inputtext" style="width:197px;height:90px;" name="tyno"></textarea>
+										<input type="hidden" value="13044240" id="ssid" name="ssid"/><br/>
+										<nobr  id="inputmessage" style="color:red;font-size:14px">&nbsp;</nobr></p>
+										姓名 ：<br/>
+										<input type="text" class="nouse"  id="sname" name="sname"/><br/>
+										
+										院系/科室：<br/>
+										<input type="text"  id="dep" name="dep"/><br/>
+										验证码 ：</br>
+										<input type="text" id="checkcodejg" class="nouse"  name="checkcodejg"  /> <nobr  id="message" style="color:red;font-size:14px">&nbsp;</nobr>
+										<img src="/user/login/checkimg" width="74" height="29"   onclick="document.getElementById('vimg').src='/user/login/checkimg?t='+ (new Date().getTime());" style="cursor:pointer" id="vimg"/>
+										</br><input type="button" style="background-color: #0063dc; border-left: 1px solid #7cbaff; float:right; color: #fff;" id="cancel" value="取消" name="sub"/>
+										<input type="button" style="background-color: #0063dc; border-left: 1px solid #7cbaff; float:right; color: #fff;" id="submit" value="推荐" name="sub"/>
+									</div>								
+								</div>
+				<div class="zco_box">
+					<h2  class="zco_title">图书简介</h2>
+					<div class="zco_content">
+													这是一本难得的诠释SCAA相关课程的咖啡参考书，详细而又深入浅出&hellip;&hellip;
+											</div>
+					<h2  class="zco_title">图书评论<em class="zco_num">(<span></span>)</em></h2>
+					<div class="zco_content discuss_content"></div>
+					<p class="zra_more" style="display: none;"><a href="javascript:void(0)">查看更多评论</a></p>
+				</div>
+			</div>
+		</div>
+		<p class="zbottom"></p>
+	</div>
+	<!--ranking end-->
+	<div class="zfooter">
+  <p class="zf_tc">
+    <span class="zf_vm">汇雅书世界v5.0  客服热线：010-51665064 客服信箱：546401002@qq.com  </span>&nbsp;<a onclick="window.open('http://ffhgfc36ddccdc234f5bb9216d41432f11ddhxfufxnoubbfb6kon.fgzi.wap.gxlib.org/customer','_blank','height=473,width=703,fullscreen=3,top=200,left=200,status=yes,toolbar=no,menubar=no,resizable=no,scrollbars=no,location=no,titlebar=no');" href="javascript:void(0);"><img class="zf_vm" src="/static/images/front/basic/footer-custom-service.jpg" width="80" height="20"/></a>
+  </p>
+  <p class="zf_tc">注意： 本站资源仅供非商业使用，为学习、教学研究服务，严禁外传及不合理利用</p>
+  <p class="zf_tc">京ICP备：
+    <a target="_blank" href="http://ffhg2baf5b5b5d68476082be789ae39cc740hxfufxnoubbfb6kon.fgzi.wap.gxlib.org">12011241号-1</a>
+    <a title="站长统计" target="_blank" href="http://www.cnzz.com/stat/website.php?web_id=2044458"><img vspace="0" hspace="0" border="0" src="http://icon.cnzz.com/img/pic.gif"></a>
+  </p>
+  <div style="width:200px;margin:0 auto;">
+    <a target="_blank" href="http://ffhg74f4fd957e774248b08ba4ef8d5a6255hxfufxnoubbfb6kon.fgzi.wap.gxlib.org/portal/registerSystemInfo?recordcode=11010802022111" style="display:inline-block;text-decoration:none;height:20px;line-height:20px;"><img src="/static/images/front/basic/gongan.png" style="float:left;"/>
+      <p style="float:left;height:20px;line-height:20px;margin: 0px 0px 0px 5px; color:#939393;">京公网安备 11010802022111号</p></a>
+  </div>
+</div>
+<script>
+  require(['useronline', 'statistics'], function () {
+    Stcs.record('112', '117.141.116.126');
+  });
+</script></div>
+
+<!--zfixed start-->
+<div class="zfixed">
+	<a href="javascript:void(0);" class="discuss" data="{book:'精品咖啡学  上  浅焙、单品、庄园豆  第三波精品咖啡大百科', option:'评论', ssid:'13044240'}"></a>
+	<a href="javascript:void(0);" class="top"></a>
+</div>
+<!--zfixed start-->
+
+<iframe id="pdgurl" name="pdgurl" style="display: none"></iframe>
+
+<script type="text/template" id="discusstpl">
+<h2 class="zco_h"><%=stringEncode(this.title)%><span class="zc999 zco_time"><%=this.inserttime%></span></h2>
+<div class="zco_bb1">
+	<p><%=stringEncode(this.content)%></p>
+</div>
+</script>
+
+<script>
+
+require(['jquery', 'jquery-jqote2', 'layer','collect'], function($, jqueryJqote2, layer, collect){
+
+
+	// 评论加载器
+	function DiscussLoader() {
+		this.cpage = 1; // 当前页
+		this.pageSize = 10; // 每次加载显示数量
+		this.isLoading = false; // 是否正在加载
+		this.lastSize = 0; // 上次加载数量
+		this.lastPage = 1; // 上次加载页码
+	}
+	
+	window.stringEncode = function(str){
+		var div=document.createElement('div');
+	    if(div.innerText){
+	    	div.innerText=str;
+	    }else{
+	        div.textContent=str;
+	    }
+	    return div.innerHTML;
+	  }
+	
+	DiscussLoader.prototype.load = function(t) {
+		var me = this;
+		
+		if (me.isLoading) {
+			return;
+		}
+		
+		me.isLoading = true;
+		
+		$.ajax({
+			url: '/book/discuss/search',
+			type: 'POST',
+			cache: false,
+			data: {
+				ssid: '13044240',
+				cpage: me.cpage,
+				pageSize: me.pageSize
+			},
+			dataType: 'json',
+			success: function(data, textStatus) {
+				data = eval('(' + data + ')');
+				
+				if (textStatus != "success" || !data.success) {
+					return;
+				}
+				
+				$('.zco_num span').html(data.data.total);
+				
+				var result = data.data.result;
+				
+				if (result.length == 0) {
+					$('.zra_more').hide();
+					
+					if (me.cpage == 1) {
+						$('.discuss_content').text('暂无评论。。。');
+						$('.zra_more').html('');
+					}
+					
+					return;
+				}
+				
+				$('.zra_more').show();
+				
+				var totle = data.data.total;
+				var index = 0;
+				
+				// 如果上次加载和这次加载的是同一页, 则加载缺少的内容
+				if (me.lastPage == me.cpage) {
+					if (result.length <= me.lastSize) {
+						if (t == 'click') {
+							layer.alert('没有更多评论,请过会再试...', -1);				
+						}
+						
+						return;
+					}
+					
+					index = me.lastSize;
+				}
+				
+				if (me.lastPage == 1 && me.lastSize == 0) {
+					$('.discuss_content').empty();
+				}
+				
+				for (var discuss; discuss = result[index++];) {
+					$('.discuss_content').append($('#discusstpl').jqote(discuss));
+				}
+				
+				me.lastSize = result.length;
+				me.lastPage = me.cpage;
+				
+				if (data.data.pages > me.cpage) {
+					me.cpage ++;
+				}
+			},
+			error: function(XMLHttpRequest, textStatus, errorThrown) {
+			},
+			complete: function() {
+				me.isLoading = false;
+			}
+		});
+	};
+	
+	// 加载评论
+	var discussLoader = new DiscussLoader();
+	discussLoader.load('auto');
+	$('.zra_more a').click(function() {
+		discussLoader.load('click');
+	});		
+	
+	// 纠错 评论 收藏
+	$('.zli_i_media a,.zfixed .discuss').click(function() {
+		var data = $(this).attr('data');
+		
+		if (!data) {
+			return;
+		}
+		
+		data = eval('(' + data + ')');
+		var option = data.option;
+		
+		/*if(option == '收藏') {
+			collect.collect($(this), data);
+		}*/
+		
+		var url = null;
+		var height = '360px'
+		
+		if (option == '纠错') {
+			url = "/book/correction/add?ssid=" + data.ssid;
+		} else if (option == '评论'){
+			url = "/book/discuss/add?ssid=" + data.ssid;
+			height = '300px';
+		}
+		
+		if (!url) {
+			return;
+		}
+		
+		$.layer({
+		    type: 2,
+		    fix: false,
+		    title: '《' + data.book + '》' + ' — ' + option,
+		    maxmin: true,
+		    shade: [0.7, '#000'],
+		    border: [3, 0.3, '#000'],
+		    shadeClose: true,
+		    closeBtn: [0, true],
+		    fix: true,
+		    moveOut: false,
+		    iframe: {src : url},
+		    area: ['540px', height],
+		    fadeIn: 300,
+		    end: function() {
+		    	setTimeout(function() {
+		    		discussLoader.load('auto');
+		    	}, 0);
+		    }
+		});
+	});
+
+
+	// 推荐购买提示框
+	$('#jg').click(function() {
+		$('#inputtext').val('');
+		$('#sname').val('');
+		$('#dep').val('');
+		$('#checkcodejg').val('');
+		$('#message').text('');
+		$('#inputmessage').text('');
+		$('#jgdivv').show();
+	});
+	/**
+	 * 取消荐购
+	 */
+	$('#cancel').click(function(){
+		$('#jgdivv').hide();
+		$('#inputtext').val('');
+		$('#sname').val('');
+		$('#dep').val('');
+		$('#checkcodejg').val('');
+		$('#message').text('');
+		$('#inputmessage').text('');
+	});
+	var tipsStyle = ['background-color:#ff0000; color:#fff;', '#ff0000'];
+	
+	function check() {
+		var sel = $(".nouse");
+		//var val = $(sel)[0].value;
+		for(var i=0;i<sel.length;i++){
+			var val=$(sel)[i].value;
+			if ($.trim(val) == '') {
+				var tips='';
+				if(i==0){
+					tips='荐购理由不能为空';
+				}if(i==1){
+					tips='姓名不能为空';
+				}if(i==2){
+					tips='验证码不能为空';
+				}
+				layer.tips(tips, sel, {style: tipsStyle, guide:0, time: 3});
+				tips='';
+				$(sel).addClass('border_red');
+				return false;
+			} else {
+				$(sel).removeClass('border_red');
+			}
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * 提交荐购
+	 */
+	$('#submit').click(function(){
+		var tyno = $('#inputtext').val();
+		var ssid = $('#ssid').val();
+		var sname = $('#sname').val();
+		var dep = $('#dep').val();
+		var checkcodejg = $('#checkcodejg').val();
+		if(!check()) {
+			return;
+		}
+		var url = '/book/jiangou/save';
+		$.ajax({
+			url: url,
+			data: {
+					tyno: tyno,
+					ssid: ssid,
+					sname: sname,
+					dep: dep,
+					checkcodejg:checkcodejg
+				},
+			type: 'POST',
+			dataType: 'html',
+			success: function(data) {
+				data = eval('('  + data + ')');
+				if (!data.success) {
+					alert('荐购失败:' + data.msg);
+					return;
+				}
+				$('#jgdivv').hide();
+				alert('荐购成功');
+				
+			},
+			error: function() {
+				alert('荐购失败');
+			}
+		});
+	});
+	
+	
+	$('.zfixed .top').on('click', function() {
+		$("html, body").animate({ scrollTop: 0 }, 300);
+	});
+	
+	
+});
+</script>
+
+</body>
+</html>
