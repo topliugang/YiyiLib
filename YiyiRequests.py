@@ -59,48 +59,7 @@ def cookie_str_2_dict(cookie_str):
             cookies[key] = value
     return cookies
 
-def fuck(card_url):
-    temp_pdf_path = './temp'
-    # 清空temp文件夹
-    for filename in os.listdir(temp_pdf_path):
-        fullpath = os.path.join(temp_pdf_path, filename)
-        os.remove(fullpath)
-    # card页面
-    yiyi_request = YiyiRequests()
-    # card_url = 'http://ffhgfc36ddccdc234f5bb9216d41432f11ddhfknpu959v5uo6fb9.fgzi.wap.gxlib.org/book/card?cnFenlei=TS273&ssid=14424477&d=0e2a9c041ca6a37782e6b74ffb90e993&isFromBW=true&isjgptjs=false'
-    r = yiyi_request.get(card_url)
-    span = Selector(response=r).css('span.zli_i_web')[0]
-    ahref = span.css('a::attr(href)').get()
-    netloc = urlparse.urlparse(card_url).netloc
-    scheme = urlparse.urlparse(card_url).scheme
-    # 取得pdf阅读按钮的完全地址
-    jpathreader_url = '%s://%s%s' % (scheme, netloc, ahref)
-    r = yiyi_request.get(jpathreader_url)
 
-    selector = Selector(response=r)
-    js = selector.css('script')[3].extract()[8:-9].strip()
-    filemark = re.search('var fileMark = "\d*";', js).group()[16:-2]
-    usermark = re.search('var userMark = "\d*";', js).group()[16:-2]
-    pagecount = re.search('var total = \d+;', js).group()[12:-1]
-    filename = re.search('var fileName = ".*";', js).group()[16:-2]
-    # print filename
-    base_download_url = re.search('DEFAULT_BASE_DOWNLOAD_URL = .+;', js).group()
-    # print re.findall("'([^']+)'", base_download_url)
-    pdf_url_template = '%s%s%s%s%s' % (re.findall("'([^']+)'", base_download_url)[0], filemark,
-                                       re.findall("'([^']+)'", base_download_url)[1], usermark,
-                                       re.findall("'([^']+)'", base_download_url)[2])
-
-    for i in range(1, int(pagecount) + 1):
-        pdf_page_url = '%s&cpage=%d' % (pdf_url_template, i)
-        filepath = os.path.join(temp_pdf_path, '%d.pdf' % i)
-        # print 'Download %s...'%filepath
-        yiyi_request.download(pdf_page_url, filepath)
-
-    pdf_paths = []
-    for i in range(1, int(pagecount) + 1):
-        pdf_paths.append(os.path.join(temp_pdf_path, '%d.pdf' % i))
-
-    hebingpdf(pdf_paths, '%s.pdf' % filename)
 
 
 def hebingpdf(input_paths, output_path):
@@ -119,54 +78,6 @@ def hebingpdf(input_paths, output_path):
     print("### PDF hebing completed!")
 
 
-def fuck2(card_url):
-    yiyi_request = YiyiRequests()
-    # card_url = 'http://ffhgfc36ddccdc234f5bb9216d41432f11ddhfknpu959v5uo6fb9.fgzi.wap.gxlib.org/book/card?cnFenlei=TS273&ssid=14424477&d=0e2a9c041ca6a37782e6b74ffb90e993&isFromBW=true&isjgptjs=false'
-    r = yiyi_request.get(card_url)
-    span = Selector(response=r).css('span.zli_i_web')[0]
-    ahref = span.css('a::attr(href)').get()
-    netloc = urlparse.urlparse(card_url).netloc
-    scheme = urlparse.urlparse(card_url).scheme
-    # 取得pdf阅读按钮的完全地址
-    jpathreader_url = '%s://%s%s' % (scheme, netloc, ahref)
-    # print jpathreader_url
-    r = yiyi_request.get(jpathreader_url)
-    # with codecs.open('fuck.html', 'w', encoding='utf-8') as fuck_file:
-    #     fuck_file.write(r.text)
-    # selector = Selector(response=r)
-    jpg_path = re.search('jpgPath: ".+",', r.text).group()[10:-2]
-    start_page, end_page = re.search("ps: '\d+-\d+',", r.text).group()[5:-2].split('-')
-    start_page = int(start_page)
-    end_page = int(end_page)
-    netloc = urlparse.urlparse(r.url).netloc
-    scheme = urlparse.urlparse(r.url).scheme
-
-    [[a1, b1], [a2, b2], [a3, b3], [a4, b4], [a5, b5], [a6, b6], [a7, b7], [a8, b8]] = json.loads(
-        re.search(r'var pages = \[.*\];', r.text).group()[12:-1])
-    jpg_codes = []
-    for i in range(a1, a1 + b1 + 1):
-        jpg_codes.append('cov%.3d' % i)
-    for i in range(a2, a2 + b2):
-        jpg_codes.append('bok%.3d' % i)
-    for i in range(a3, a3 + b3):
-        jpg_codes.append('leg%.3d' % i)
-    for i in range(a4, a4 + b4):
-        jpg_codes.append('fow%.3d' % i)
-    for i in range(a5, a5 + b5):
-        jpg_codes.append('!%.5d' % i)
-    for i in range(a6, a6 + b6):
-        jpg_codes.append('%.6d' % i)
-    for i in range(a7, a7 + b7):
-        jpg_codes.append('att%.3d' % i)
-    for i in range(a8, a8 + b8 - 1):
-        jpg_codes.append('cov%.3d' % i)
-
-    jpg_url_template = '%s://%s%s%%s?zoom=2' % (scheme, netloc, jpg_path)
-    print jpg_url_template
-
-    for jpg_code in jpg_codes:
-        url = jpg_url_template % (jpg_code)
-        yiyi_request.download(url, './jpg/%s.jpg' % jpg_code)
 
 
 
@@ -186,16 +97,16 @@ class Book:
         self.book_type = book_type
 
     def print_me(self):
-        print self.title
-        print self.theme
-        print self.comment
-        print self.author
-        print self.page_count
-        print self.publish_time
-        print self.publisher
-        print self.class_code
-        print self.reader_url
-        print self.book_type
+        print 'title:' + unicode(self.title)
+        print 'theme:' + unicode(self.theme)
+        print 'comment:' + unicode(self.comment)
+        print 'author:' + unicode(self.author)
+        print 'page_count:' + unicode(self.page_count)
+        print 'publish_time:' + unicode(self.publish_time)
+        print 'publisher:' + unicode(self.publisher)
+        print 'class_code:' + unicode(self.class_code)
+        print 'reader_url:' + unicode(self.reader_url)
+        print 'book_type:' + unicode(self.book_type)
 
 
 #解析card页面，返回图书的信息
@@ -221,17 +132,103 @@ def parse_card(response):
                 publisher, class_code, reader_url, book_type)
     return book
 
+#根据response生成jpg下载链接，并且下载
+def parse_jpath_reader(response):
+    jpg_path = re.search('jpgPath: ".+",', response.text).group()[10:-2]
+    start_page, end_page = re.search("ps: '\d+-\d+',", response.text).group()[5:-2].split('-')
+    start_page = int(start_page)
+    end_page = int(end_page)
+    netloc = urlparse.urlparse(response.url).netloc
+    scheme = urlparse.urlparse(response.url).scheme
+
+    [[a1, b1], [a2, b2], [a3, b3], [a4, b4], [a5, b5], [a6, b6], [a7, b7], [a8, b8]] = json.loads(
+        re.search(r'var pages = \[.*\];', r.text).group()[12:-1])
+    jpg_codes = []
+    for i in range(a1, a1 + b1 + 1):
+        jpg_codes.append('cov%.3d' % i)
+    for i in range(a2, a2 + b2):
+        jpg_codes.append('bok%.3d' % i)
+    for i in range(a3, a3 + b3):
+        jpg_codes.append('leg%.3d' % i)
+    for i in range(a4, a4 + b4):
+        jpg_codes.append('fow%.3d' % i)
+    for i in range(a5, a5 + b5):
+        jpg_codes.append('!%.5d' % i)
+    for i in range(a6, a6 + b6):
+        jpg_codes.append('%.6d' % i)
+    for i in range(a7, a7 + b7):
+        jpg_codes.append('att%.3d' % i)
+    for i in range(a8, a8 + b8 - 1):
+        jpg_codes.append('cov%.3d' % i)
+
+    jpg_url_template = '%s://%s%s%%s?zoom=2' % (scheme, netloc, jpg_path)
+
+    for jpg_code in jpg_codes:
+        url = jpg_url_template % (jpg_code)
+        yiyi_request.download(url, './jpg/%s.jpg' % jpg_code)
+
+#根据response生成pdf下载链接，下载
+def parse_pdf_reader(response):
+    selector = Selector(response=response)
+    js = selector.css('script')[3].extract()[8:-9].strip()
+    filemark = re.search('var fileMark = "\d*";', js).group()[16:-2]
+    usermark = re.search('var userMark = "\d*";', js).group()[16:-2]
+    pagecount = re.search('var total = \d+;', js).group()[12:-1]
+    filename = re.search('var fileName = ".*";', js).group()[16:-2]
+    # print filename
+    base_download_url = re.search('DEFAULT_BASE_DOWNLOAD_URL = .+;', js).group()
+    # print re.findall("'([^']+)'", base_download_url)
+    pdf_url_template = '%s%s%s%s%s' % (re.findall("'([^']+)'", base_download_url)[0], filemark,
+                                       re.findall("'([^']+)'", base_download_url)[1], usermark,
+                                       re.findall("'([^']+)'", base_download_url)[2])
+
+    for i in range(1, int(pagecount) + 1):
+        pdf_page_url = '%s&cpage=%d' % (pdf_url_template, i)
+        filepath = os.path.join(temp_pdf_path, '%d.pdf' % i)
+        # print 'Download %s...'%filepath
+        yiyi_request.download(pdf_page_url, filepath)
+
+    #这一部分是关于文件夹操作，先清空temp文件夹，再合并pdf
+    #需要修改
+    temp_pdf_path = './temp'
+    # 清空temp文件夹
+    for filename in os.listdir(temp_pdf_path):
+        fullpath = os.path.join(temp_pdf_path, filename)
+        os.remove(fullpath)
+
+    pdf_paths = []
+    for i in range(1, int(pagecount) + 1):
+        pdf_paths.append(os.path.join(temp_pdf_path, '%d.pdf' % i))
+
+    hebingpdf(pdf_paths, '%s.pdf' % filename)
+
+#逻辑：
+# 1.访问card页面，生成Book信息
+# 2.访问Book中的reader_url页面，生成下载链接
+def fuck(card_url, cookie_str=None):
+    yiyi_request = YiyiRequests(cookie_str_2_dict(cookie_str))
+    r = yiyi_request.get(card_url)
+    book = parse_card(r)
+    book.print_me()
+    if book.book_type == 0:# pdf
+        r = yiyi_request.get(book.reader_url)
+        parse_pdf_reader(r)
+    elif book.book_type == 1: #网页阅读
+        r = yiyi_request.get(book.reader_url)
+        parse_jpath_reader(r)
+        # with codecs.open('fuck.html', 'w', encoding='utf-8') as fuck_file:
+        #     fuck_file.write(r.text)
+        # selector = Selector(response=r)
+
 
 if __name__ == '__main__':
     # fuck('http://ffhgfc36ddccdc234f5bb9216d41432f11ddh6vk9unuobxw56n69.fgzi.wap.gxlib.org/book/card?cnFenlei=A841.68&ssid=13680758&d=bd2d9b7e4b4d6a2861e036bc492e7bdf&isFromBW=true&isjgptjs=false')
     # fuck2('http://ffhgfc36ddccdc234f5bb9216d41432f11ddhxfufxnoubbfb6kon.fgzi.wap.gxlib.org/book/card?cnFenlei=TS273&ssid=13044240&d=79b72251f15ad256652e6b831874bb90&isFromBW=false&isjgptjs=false')
     # input = PdfFileReader(open('./temp/4.pdf', 'rb'))
-    card_url = 'http://www.sslibrary.com/book/card?cnFenlei=J952&ssid=13474579&d=bbe6937a0a4eb9e145b33cc8238ec6cb&isFromBW=false&isjgptjs=false'
+    card_url = 'http://www.sslibrary.com/book/card?ssid=96136883&d=ea4be8af9f69453d07c594e4933a0da7&cnFenlei=F276.5&dxid=000016584446&isFromBW=true '
     cookie_str = 'loginType=certify; username=gzsztsg; account=GY036423; deptid=1078; msign=105132512894418; enc=8e6e4a9eda70155820cf591e084de958; DSSTASH_LOG=C%5f34%2dUN%5f1078%2dUS%5f%2d1%2dT%5f1573472518774; UM_distinctid=16e5a4613ab2ef-060a546b625c3b-1c3c6a5a-13c680-16e5a4613acdb; route=a43339488179d54bb7f54cfa4036b6de; JSESSIONID=5628ABD4020465AA6A2778ACFF7C289C.dsk45_web; ruot=1573489719665'
-    yiyi_request = YiyiRequests(cookie_str_2_dict(cookie_str))
-    r = yiyi_request.get(card_url)
-    book = parse_card(r)
-    book.print_me()
+    fuck(card_url,cookie_str=cookie_str)
+
 
 
     exit()
