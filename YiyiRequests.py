@@ -21,6 +21,7 @@ from scrapy.selector import Selector
 from scrapy.http import HtmlResponse
 import json
 import re
+import time
 
 from PyPDF2 import PdfFileReader, PdfFileWriter
 
@@ -127,7 +128,9 @@ def parse_card(response):
     title = selector.css('h2.zli_i_h2::text').extract_first()
     theme = selector.css('p.zli_i_tt::text').extract_first()
     comment = selector.css('div.zco_content::text').extract_first()
-    author, page_count, publish_time, publisher, class_code = selector.css('li.zli_info p::text').extract()[1:]
+
+    author, page_count, publish_time, publisher, class_code = selector.css('li.zli_info p::text').extract()[-5:]
+
     #阅读地址
     span = selector.css('span.zli_i_web')[0]
     ahref = span.css('a::attr(href)').get()
@@ -235,7 +238,7 @@ def fuck(card_url, cookie_str=None):
     r = yiyi_request.get(card_url)
     book = parse_card(r)
     print '### Book parsed.'
-    print '###   Name:%s'%book.theme.replace(u'\xa0',u'')
+    print '###   Name:%s'%book.title.replace(u'\xa0',u'')
     print '###   Ssid:%s'%book.ssid
     print '###   Page_count:%s'%book.page_count
 
@@ -256,6 +259,7 @@ def fuck(card_url, cookie_str=None):
     for url,filename in url_filename_list:
         filepath = os.path.join(book_dir, filename)
         yiyi_request.download(url, filepath)
+        time.sleep(2)
 
 
 
@@ -263,8 +267,8 @@ if __name__ == '__main__':
 
     # card_url = 'http://www.sslibrary.com/book/card?ssid=96136883&d=ea4be8af9f69453d07c594e4933a0da7&cnFenlei=F276.5&dxid=000016584446&isFromBW=true '
     # cookie_str = 'loginType=certify; username=gzsztsg; account=GY036423; deptid=1078; msign=105132512894418; enc=8e6e4a9eda70155820cf591e084de958; DSSTASH_LOG=C%5f34%2dUN%5f1078%2dUS%5f%2d1%2dT%5f1573472518774; UM_distinctid=16e5a4613ab2ef-060a546b625c3b-1c3c6a5a-13c680-16e5a4613acdb; route=a43339488179d54bb7f54cfa4036b6de; JSESSIONID=5628ABD4020465AA6A2778ACFF7C289C.dsk45_web; ruot=1573489719665'
-    card_url = 'http://ffhgfc36ddccdc234f5bb9216d41432f11ddh69nxk066xcb666cv.fgzi.wap.gxlib.org/book/card?cnFenlei=I561.45&ssid=13433323&d=e29810e711edc3387a236812eaffda14&isFromBW=true&isjgptjs=false'
-    cookie_str = 'UM_distinctid=16e341868f8159-002e753a3731f5-5d1f3b1c-1fa400-16e341868f95d4; CWJSESSIONID=160CD19F97410FBC4E32F340D2DE3958; cwsid=46ecdb44c824448f'
+    card_url = 'http://ffhgfc36ddccdc234f5bb9216d41432f11ddhvpfoqwow509c6vkx.fgzi.wap.gxlib.org/book/card?cnFenlei=G899&ssid=11839815&d=abb352a58164f2e8dd3309d27dced8f3&isFromBW=false&isjgptjs=false'
+    cookie_str = 'UM_distinctid=16e341868f8159-002e753a3731f5-5d1f3b1c-1fa400-16e341868f95d4; CWJSESSIONID=286AAE6E8648180659E3FD3F66E0F514; cwsid=f9a710705b684fdc'
     fuck(card_url, cookie_str=cookie_str)
 
 
