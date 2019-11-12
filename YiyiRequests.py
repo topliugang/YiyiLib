@@ -259,7 +259,7 @@ def fuck(card_url, cookie_str=None):
     for url,filename in url_filename_list:
         filepath = os.path.join(book_dir, filename)
         yiyi_request.download(url, filepath)
-        time.sleep(2)
+        time.sleep(1)
 
 
 
@@ -267,8 +267,8 @@ if __name__ == '__main__':
 
     # card_url = 'http://www.sslibrary.com/book/card?ssid=96136883&d=ea4be8af9f69453d07c594e4933a0da7&cnFenlei=F276.5&dxid=000016584446&isFromBW=true '
     # cookie_str = 'loginType=certify; username=gzsztsg; account=GY036423; deptid=1078; msign=105132512894418; enc=8e6e4a9eda70155820cf591e084de958; DSSTASH_LOG=C%5f34%2dUN%5f1078%2dUS%5f%2d1%2dT%5f1573472518774; UM_distinctid=16e5a4613ab2ef-060a546b625c3b-1c3c6a5a-13c680-16e5a4613acdb; route=a43339488179d54bb7f54cfa4036b6de; JSESSIONID=5628ABD4020465AA6A2778ACFF7C289C.dsk45_web; ruot=1573489719665'
-    card_url = 'http://ffhgfc36ddccdc234f5bb9216d41432f11ddhvpfoqwow509c6vkx.fgzi.wap.gxlib.org/book/card?cnFenlei=G899&ssid=11839815&d=abb352a58164f2e8dd3309d27dced8f3&isFromBW=false&isjgptjs=false'
-    cookie_str = 'UM_distinctid=16e341868f8159-002e753a3731f5-5d1f3b1c-1fa400-16e341868f95d4; CWJSESSIONID=286AAE6E8648180659E3FD3F66E0F514; cwsid=f9a710705b684fdc'
+    card_url = 'http://ffhgfc36ddccdc234f5bb9216d41432f11ddhnco0c65fqbp56vo9.fgzi.wap.gxlib.org/book/card?cnFenlei=G899&ssid=11340863&d=cf93ed466df541d847db2f489ca9e264&isFromBW=false&isjgptjs=false'
+    cookie_str = 'UM_distinctid=16e341868f8159-002e753a3731f5-5d1f3b1c-1fa400-16e341868f95d4; CWJSESSIONID=B89CE9531962B064C05E135F2A1FA25C; cwsid=e87b845a12954f76'
     fuck(card_url, cookie_str=cookie_str)
 
 
