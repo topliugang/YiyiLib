@@ -1,13 +1,14 @@
 # -*- coding: UTF-8 -*-
-#http://www.gzlib.org/
+# http://www.gzlib.org/
 # 卡号：GY036423
 # 密码：815706
-#需要验证cookies
+# 需要验证cookies
 
 # http://wap.gxlib.org/ermsClient/browse.do
 # 18263735763
 # 335762
 import sys
+
 reload(sys)
 sys.setdefaultencoding('utf8')
 
@@ -28,17 +29,20 @@ from PyPDF2 import PdfFileReader, PdfFileWriter
 
 # 不想要302重定向直接跳转问题：在get方法里面增加allow_redirects=False
 class YiyiRequests:
-    def __init__(self, cookies=None,cookie_str=None):
+    def __init__(self, cookies=None, cookies_str=None):
         self.s = requests.Session()
         user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.87 Safari/537.36'
-        self.headers = {'User-Agent': user_agent}
-        self.cookies = cookies
-        if cookie_str:
-            self.cookies = cookie_str_2_dict(cookie_str)
+        self.headers = {'User-Agent': user_agent,
+                        'Cookie': 'JSESSIONID=77C607EE3279C442C9A31BF328E6D6B2; xinyu=eyJ1bmFtZSI6IuW5v+S4nOa1t+a0i+Wkp+WtpiIsInd4ZG9tIjoianQud3gueGlueXVsaWIuY29tLmNuIiwiaXNzaGFyZSI6IjAiLCJ1dHlwZSI6IjAiLCJ0aXRsZSI6IuaWsOivreaVsOWtl+WbvuS5pummhiIsInBhY2siOiJsaWIiLCJ1c2VyaWQiOiIxMTM3Iiwic2hvd25hbWUiOiIiLCJlYm9vayI6IjEiLCJwY2RvbSI6Imp0Lnhpbnl1bGliLmNvbS5jbiIsInNpdGVpZCI6IjM1IiwidW5pdGlkIjoiMzk1IiwibG9nbyI6IiJ9; pubxinyu="eyJzaG93bmFtZSI6IiIsInVuYW1lIjoi5bm/5Lic5rW35rSL5aSn5a2mIiwid3hkb20iOiJqdC53eC54aW55dWxpYi5jb20uY24iLCJwY2RvbSI6Imp0Lnhpbnl1bGliLmNvbS5jbiIsInNpdGVpZCI6IjM1IiwidW5pdGlkIjoiMzk1IiwidGl0bGUiOiLmlrDor63mlbDlrZflm77kuabppoYiLCJwYWNrIjoibGliIn0="'}
+        # self.cookies = cookies
+        # if cookies_str:
+        #     self.cookies = cookie_str_2_dict(cookies_str)
+
 
     def get(self, url):
         # print '### Getting...'
-        return self.s.get(url=url, headers=self.headers,cookies=self.cookies)
+        #print self.cookies
+        return self.s.get(url=url, headers=self.headers)
 
     def download(self, url, path):
         print '### Downloading...'
@@ -54,14 +58,17 @@ def parse_url_host(url):
         host = host + ralative_path
     return host
 
+
 def cookie_str_2_dict(cookie_str):
     cookies = {}
     if ';' in cookie_str:
         for i in cookie_str.split(';'):
+            i = i.strip()
             key = i.split('=')[0]
             value = i.split('=')[1]
             cookies[key] = value
     return cookies
+
 
 # 使用urlparse解析url,获取query参数字典
 # 这样获取aaid：aaid = parse_url_parms(url)['aid'][0]
@@ -87,10 +94,7 @@ def hebingpdf(input_paths, output_path):
     print("### PDF hebing completed!")
 
 
-
-
-
-#其中的book_type 0:pdf, 1:网页阅读
+# 其中的book_type 0:pdf, 1:网页阅读
 class Book:
     def __init__(self, ssid, title, theme, comment, author, page_count,
                  publish_time, publisher, class_code, reader_url, book_type):
@@ -120,8 +124,8 @@ class Book:
         print 'book_type:' + unicode(self.book_type)
 
 
-#解析card页面，返回图书的信息
-#其中的book_type 0:pdf, 1:网页阅读
+# 解析card页面，返回图书的信息
+# 其中的book_type 0:pdf, 1:网页阅读
 def parse_card(response):
     selector = Selector(response=response)
     ssid = parse_url_parms(response.url)['ssid'][0]
@@ -131,13 +135,13 @@ def parse_card(response):
 
     author, page_count, publish_time, publisher, class_code = selector.css('li.zli_info p::text').extract()[-5:]
 
-    #阅读地址
+    # 阅读地址
     span = selector.css('span.zli_i_web')[0]
     ahref = span.css('a::attr(href)').get()
     netloc = urlparse.urlparse(response.url).netloc
     scheme = urlparse.urlparse(response.url).scheme
     reader_url = '%s://%s%s' % (scheme, netloc, ahref)
-    #阅读类型
+    # 阅读类型
     if 'pdf' in reader_url:
         book_type = 0
     elif 'jpathreader' in reader_url:
@@ -147,8 +151,8 @@ def parse_card(response):
     return book
 
 
-#根据response生成jpg下载链接，并下载
-#返回一个url_filename_list:[[url,filename],[url,filename]]
+# 根据response生成jpg下载链接，并下载
+# 返回一个url_filename_list:[[url,filename],[url,filename]]
 def parse_jpath_reader(response):
     jpg_path = re.search('jpgPath: ".+",', response.text).group()[10:-2]
     start_page, end_page = re.search("ps: '\d+-\d+',", response.text).group()[5:-2].split('-')
@@ -183,15 +187,16 @@ def parse_jpath_reader(response):
     url_filename_list = []
     for jpg_code in jpg_codes:
         url = jpg_url_template % (jpg_code)
-        pre_filename = '%.6d'%index
-        filename = '%s_%s.jpg'%(pre_filename, jpg_code)
-        index = index+1
+        pre_filename = '%.6d' % index
+        filename = '%s_%s.jpg' % (pre_filename, jpg_code)
+        index = index + 1
         url_filename_list.append([url, filename])
-        #yiyi_request.download(url, './jpg/%s.jpg' % jpg_code)
+        # yiyi_request.download(url, './jpg/%s.jpg' % jpg_code)
     return url_filename_list
 
-#根据response生成pdf下载链接，下载
-#返回一个url_filename_list:[[url,filename],[url,filename]]
+
+# 根据response生成pdf下载链接，下载
+# 返回一个url_filename_list:[[url,filename],[url,filename]]
 def parse_pdf_reader(response):
     selector = Selector(response=response)
     js = selector.css('script')[3].extract()[8:-9].strip()
@@ -209,7 +214,7 @@ def parse_pdf_reader(response):
     url_filename_list = []
     for i in range(1, int(pagecount) + 1):
         pdf_page_url = '%s&cpage=%d' % (pdf_url_template, i)
-        filename = '%.6d.pdf'%i
+        filename = '%.6d.pdf' % i
         url_filename_list.append([pdf_page_url, filename])
         # filepath = os.path.join(temp_pdf_path, '%d.pdf' % i)
         # # print 'Download %s...'%filepath
@@ -230,7 +235,8 @@ def parse_pdf_reader(response):
     #
     # hebingpdf(pdf_paths, '%s.pdf' % filename)
 
-#逻辑：
+
+# 逻辑：
 # 1.访问card页面，生成Book信息
 # 2.访问Book中的reader_url页面，生成下载链接
 def fuck(card_url, cookie_str=None):
@@ -238,29 +244,40 @@ def fuck(card_url, cookie_str=None):
     r = yiyi_request.get(card_url)
     book = parse_card(r)
     print '### Book parsed.'
-    print '###   Name:%s'%book.title.replace(u'\xa0',u'')
-    print '###   Ssid:%s'%book.ssid
-    print '###   Page_count:%s'%book.page_count
+    print '###   Name:%s' % book.title.replace(u'\xa0', u'')
+    print '###   Ssid:%s' % book.ssid
+    print '###   Page_count:%s' % book.page_count
 
-    if book.book_type == 0:# pdf
+    if book.book_type == 0:  # pdf
         r = yiyi_request.get(book.reader_url)
         url_filename_list = parse_pdf_reader(r)
-    elif book.book_type == 1: #网页阅读
+    elif book.book_type == 1:  # 网页阅读
         r = yiyi_request.get(book.reader_url)
         url_filename_list = parse_jpath_reader(r)
 
-    book_dir = './%s'%(book.ssid)
+    book_dir = './%s' % (book.ssid)
     if os.path.exists(book_dir):
-        print '### Already exists dir:%s,exit.'%book_dir
+        print '### Already exists dir:%s,exit.' % book_dir
         exit()
     os.mkdir(book_dir)
-    print '### Dir created: %s.'%book_dir
+    print '### Dir created: %s.' % book_dir
 
-    for url,filename in url_filename_list:
+    for url, filename in url_filename_list:
         filepath = os.path.join(book_dir, filename)
         yiyi_request.download(url, filepath)
         time.sleep(1)
 
+
+def fuck_xinyu():
+    index_url = 'http://jt.wx.xinyulib.com.cn/lib/m/index/'
+    cookies_str = 'JSESSIONID=77C607EE3279C442C9A31BF328E6D6B2; xinyu=eyJ1bmFtZSI6IuW5v+S4nOa1t+a0i+Wkp+WtpiIsInd4ZG9tIjoianQud3gueGlueXVsaWIuY29tLmNuIiwiaXNzaGFyZSI6IjAiLCJ1dHlwZSI6IjAiLCJ0aXRsZSI6IuaWsOivreaVsOWtl+WbvuS5pummhiIsInBhY2siOiJsaWIiLCJ1c2VyaWQiOiIxMTM3Iiwic2hvd25hbWUiOiIiLCJlYm9vayI6IjEiLCJwY2RvbSI6Imp0Lnhpbnl1bGliLmNvbS5jbiIsInNpdGVpZCI6IjM1IiwidW5pdGlkIjoiMzk1IiwibG9nbyI6IiJ9; pubxinyu="eyJzaG93bmFtZSI6IiIsInVuYW1lIjoi5bm/5Lic5rW35rSL5aSn5a2mIiwid3hkb20iOiJqdC53eC54aW55dWxpYi5jb20uY24iLCJwY2RvbSI6Imp0Lnhpbnl1bGliLmNvbS5jbiIsInNpdGVpZCI6IjM1IiwidW5pdGlkIjoiMzk1IiwidGl0bGUiOiLmlrDor63mlbDlrZflm77kuabppoYiLCJwYWNrIjoibGliIn0="'
+    cookies = {'JSESSIONID': '77C607EE3279C442C9A31BF328E6D6B2',
+               'xinyu': 'eyJ1bmFtZSI6IuW5v+S4nOa1t+a0i+Wkp+WtpiIsInd4ZG9tIjoianQud3gueGlueXVsaWIuY29tLmNuIiwiaXNzaGFyZSI6IjAiLCJ1dHlwZSI6IjAiLCJ0aXRsZSI6IuaWsOivreaVsOWtl+WbvuS5pummhiIsInBhY2siOiJsaWIiLCJ1c2VyaWQiOiIxMTM3Iiwic2hvd25hbWUiOiIiLCJlYm9vayI6IjEiLCJwY2RvbSI6Imp0Lnhpbnl1bGliLmNvbS5jbiIsInNpdGVpZCI6IjM1IiwidW5pdGlkIjoiMzk1IiwibG9nbyI6IiJ9',
+               'pubxinyu': '"eyJzaG93bmFtZSI6IiIsInVuYW1lIjoi5bm/5Lic5rW35rSL5aSn5a2mIiwid3hkb20iOiJqdC53eC54aW55dWxpYi5jb20uY24iLCJwY2RvbSI6Imp0Lnhpbnl1bGliLmNvbS5jbiIsInNpdGVpZCI6IjM1IiwidW5pdGlkIjoiMzk1IiwidGl0bGUiOiLmlrDor63mlbDlrZflm77kuabppoYiLCJwYWNrIjoibGliIn0="', }
+    yiyi_request = YiyiRequests(cookies=cookies)
+    r = yiyi_request.get(card_url)
+    # r.cookies
+    print r.text
 
 
 if __name__ == '__main__':
@@ -269,9 +286,9 @@ if __name__ == '__main__':
     # cookie_str = 'loginType=certify; username=gzsztsg; account=GY036423; deptid=1078; msign=105132512894418; enc=8e6e4a9eda70155820cf591e084de958; DSSTASH_LOG=C%5f34%2dUN%5f1078%2dUS%5f%2d1%2dT%5f1573472518774; UM_distinctid=16e5a4613ab2ef-060a546b625c3b-1c3c6a5a-13c680-16e5a4613acdb; route=a43339488179d54bb7f54cfa4036b6de; JSESSIONID=5628ABD4020465AA6A2778ACFF7C289C.dsk45_web; ruot=1573489719665'
     card_url = 'http://ffhgfc36ddccdc234f5bb9216d41432f11ddhnco0c65fqbp56vo9.fgzi.wap.gxlib.org/book/card?cnFenlei=G899&ssid=11340863&d=cf93ed466df541d847db2f489ca9e264&isFromBW=false&isjgptjs=false'
     cookie_str = 'UM_distinctid=16e341868f8159-002e753a3731f5-5d1f3b1c-1fa400-16e341868f95d4; CWJSESSIONID=B89CE9531962B064C05E135F2A1FA25C; cwsid=e87b845a12954f76'
-    fuck(card_url, cookie_str=cookie_str)
+    # fuck(card_url, cookie_str=cookie_str)
 
-
+    fuck_xinyu()
 
     exit()
 
