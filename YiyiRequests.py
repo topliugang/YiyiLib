@@ -1,4 +1,6 @@
 # -*- coding: UTF-8 -*-
+
+# fanqiang https://github.com/bannedbook/fanqiang/wiki/Chrome%E4%B8%80%E9%94%AE%E7%BF%BB%E5%A2%99%E5%8C%85
 # http://www.gzlib.org/
 # 卡号：GY036423
 # 密码：815706
@@ -7,6 +9,9 @@
 # http://wap.gxlib.org/ermsClient/browse.do
 # 18263735763
 # 335762
+
+# 新语授权
+# http://jt.wx.xinyulib.com/lib/m/auth/auth.jsp?u=btyxytsgid&a=C3715256C4499F17D849D1A3CCE91746（免登陆密码链接）需复制链接到微信
 import sys
 
 reload(sys)
@@ -23,25 +28,26 @@ from scrapy.http import HtmlResponse
 import json
 import re
 import time
+from pyv8 import PyV8
 
 from PyPDF2 import PdfFileReader, PdfFileWriter
 
 
 # 不想要302重定向直接跳转问题：在get方法里面增加allow_redirects=False
+# cookie以str传入Yiyirequests类，（暂定）
+
 class YiyiRequests:
-    def __init__(self, cookies=None, cookies_str=None):
+    def __init__(self, cookie_str=None):
         self.s = requests.Session()
         user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.87 Safari/537.36'
-        self.headers = {'User-Agent': user_agent,
-                        'Cookie': 'JSESSIONID=77C607EE3279C442C9A31BF328E6D6B2; xinyu=eyJ1bmFtZSI6IuW5v+S4nOa1t+a0i+Wkp+WtpiIsInd4ZG9tIjoianQud3gueGlueXVsaWIuY29tLmNuIiwiaXNzaGFyZSI6IjAiLCJ1dHlwZSI6IjAiLCJ0aXRsZSI6IuaWsOivreaVsOWtl+WbvuS5pummhiIsInBhY2siOiJsaWIiLCJ1c2VyaWQiOiIxMTM3Iiwic2hvd25hbWUiOiIiLCJlYm9vayI6IjEiLCJwY2RvbSI6Imp0Lnhpbnl1bGliLmNvbS5jbiIsInNpdGVpZCI6IjM1IiwidW5pdGlkIjoiMzk1IiwibG9nbyI6IiJ9; pubxinyu="eyJzaG93bmFtZSI6IiIsInVuYW1lIjoi5bm/5Lic5rW35rSL5aSn5a2mIiwid3hkb20iOiJqdC53eC54aW55dWxpYi5jb20uY24iLCJwY2RvbSI6Imp0Lnhpbnl1bGliLmNvbS5jbiIsInNpdGVpZCI6IjM1IiwidW5pdGlkIjoiMzk1IiwidGl0bGUiOiLmlrDor63mlbDlrZflm77kuabppoYiLCJwYWNrIjoibGliIn0="'}
+        self.headers = {'User-Agent': user_agent, }
         # self.cookies = cookies
-        # if cookies_str:
-        #     self.cookies = cookie_str_2_dict(cookies_str)
-
+        if cookie_str:
+            self.headers['Cookie'] = cookie_str
+            #self.cookies = cookie_str_2_dict(cookies_str)
 
     def get(self, url):
         # print '### Getting...'
-        #print self.cookies
         return self.s.get(url=url, headers=self.headers)
 
     def download(self, url, path):
@@ -122,6 +128,8 @@ class Book:
         print 'class_code:' + unicode(self.class_code)
         print 'reader_url:' + unicode(self.reader_url)
         print 'book_type:' + unicode(self.book_type)
+
+
 
 
 # 解析card页面，返回图书的信息
@@ -267,20 +275,93 @@ def fuck(card_url, cookie_str=None):
         yiyi_request.download(url, filepath)
         time.sleep(1)
 
+class XinyuBook:
+    def __init__(self, bookid,detail_url,full_detail_url,title,img_url,tags,cids):
+        self.bookid = bookid
+        self.detail_url = detail_url
+        self.full_detail_url = full_detail_url
+        self.title = title
+        self.img_url = img_url
+        self.tags = tags
+        self.cids = cids
+
+def xinyu_audio_servlet_url(bookid, cid, stype):
+    with PyV8.JSContext() as ctxt:
+        js = open('utils.js', 'r').read()
+        ctxt.locals.bookid = bookid
+        ctxt.locals.cid = cid
+        ctxt.locals.stype = ''
+        ctxt.eval(js)
+        return ctxt.locals.audio_servlet_url
+
+def fuck(input):
+    with PyV8.JSContext() as ctxt:
+        js = open('utils.js', 'r').read()
+        ctxt.locals.bookid = ''
+        ctxt.locals.cid = ''
+        ctxt.locals.stype = ''
+
+        ctxt.locals.input = input
+
+        ctxt.eval(js)
+        return ctxt.locals.fuck
 
 def fuck_xinyu():
     index_url = 'http://jt.wx.xinyulib.com.cn/lib/m/index/'
-    cookies_str = 'JSESSIONID=77C607EE3279C442C9A31BF328E6D6B2; xinyu=eyJ1bmFtZSI6IuW5v+S4nOa1t+a0i+Wkp+WtpiIsInd4ZG9tIjoianQud3gueGlueXVsaWIuY29tLmNuIiwiaXNzaGFyZSI6IjAiLCJ1dHlwZSI6IjAiLCJ0aXRsZSI6IuaWsOivreaVsOWtl+WbvuS5pummhiIsInBhY2siOiJsaWIiLCJ1c2VyaWQiOiIxMTM3Iiwic2hvd25hbWUiOiIiLCJlYm9vayI6IjEiLCJwY2RvbSI6Imp0Lnhpbnl1bGliLmNvbS5jbiIsInNpdGVpZCI6IjM1IiwidW5pdGlkIjoiMzk1IiwibG9nbyI6IiJ9; pubxinyu="eyJzaG93bmFtZSI6IiIsInVuYW1lIjoi5bm/5Lic5rW35rSL5aSn5a2mIiwid3hkb20iOiJqdC53eC54aW55dWxpYi5jb20uY24iLCJwY2RvbSI6Imp0Lnhpbnl1bGliLmNvbS5jbiIsInNpdGVpZCI6IjM1IiwidW5pdGlkIjoiMzk1IiwidGl0bGUiOiLmlrDor63mlbDlrZflm77kuabppoYiLCJwYWNrIjoibGliIn0="'
-    cookies = {'JSESSIONID': '77C607EE3279C442C9A31BF328E6D6B2',
-               'xinyu': 'eyJ1bmFtZSI6IuW5v+S4nOa1t+a0i+Wkp+WtpiIsInd4ZG9tIjoianQud3gueGlueXVsaWIuY29tLmNuIiwiaXNzaGFyZSI6IjAiLCJ1dHlwZSI6IjAiLCJ0aXRsZSI6IuaWsOivreaVsOWtl+WbvuS5pummhiIsInBhY2siOiJsaWIiLCJ1c2VyaWQiOiIxMTM3Iiwic2hvd25hbWUiOiIiLCJlYm9vayI6IjEiLCJwY2RvbSI6Imp0Lnhpbnl1bGliLmNvbS5jbiIsInNpdGVpZCI6IjM1IiwidW5pdGlkIjoiMzk1IiwibG9nbyI6IiJ9',
-               'pubxinyu': '"eyJzaG93bmFtZSI6IiIsInVuYW1lIjoi5bm/5Lic5rW35rSL5aSn5a2mIiwid3hkb20iOiJqdC53eC54aW55dWxpYi5jb20uY24iLCJwY2RvbSI6Imp0Lnhpbnl1bGliLmNvbS5jbiIsInNpdGVpZCI6IjM1IiwidW5pdGlkIjoiMzk1IiwidGl0bGUiOiLmlrDor63mlbDlrZflm77kuabppoYiLCJwYWNrIjoibGliIn0="', }
-    yiyi_request = YiyiRequests(cookies=cookies)
-    r = yiyi_request.get(card_url)
-    # r.cookies
-    print r.text
+    cookie_str = 'JSESSIONID=9B90414D73D09097F66A8A88E5D8DA74; state=WO5DQVB9TTZF8KBJK1OU3MO62INK0PT1; xinyu="eyJ1bmFtZSI6IuWMheWktOWMu+WtpumZoiIsInd4ZG9tIjoianQud3gueGlueXVsaWIuY29tLmNuIiwiaXNzaGFyZSI6IjAiLCJ1dHlwZSI6IjAiLCJ0aXRsZSI6IuaWsOivreaVsOWtl+WbvuS5pummhiIsInBhY2siOiJsaWIiLCJ1c2VyaWQiOiI3NzUiLCJzaG93bmFtZSI6IiIsImVib29rIjoiMSIsInBjZG9tIjoianQueGlueXVsaWIuY29tLmNuIiwic2l0ZWlkIjoiMzUiLCJ1bml0aWQiOiIyNzIiLCJsb2dvIjoiIn0="; pubxinyu="eyJzaG93bmFtZSI6IiIsInVuYW1lIjoi5YyF5aS05Yy75a2m6ZmiIiwid3hkb20iOiJqdC53eC54aW55dWxpYi5jb20uY24iLCJwY2RvbSI6Imp0Lnhpbnl1bGliLmNvbS5jbiIsInNpdGVpZCI6IjM1IiwidW5pdGlkIjoiMjcyIiwidGl0bGUiOiLmlrDor63mlbDlrZflm77kuabppoYiLCJwYWNrIjoibGliIn0="'
+    morepage_url = 'http://jt.wx.xinyulib.com.cn/lib/m/search/more.jsp?sw=%EF%BC%8C&page=1'
+    yiyi_request = YiyiRequests(cookie_str=cookie_str)
+    r = yiyi_request.get(morepage_url)
+
+
+    # morefile = open('more.html', 'r')
+    # html = morefile.read()
+    # selector = Selector(text=html)
+    selector = Selector(response=r)
+    divs = selector.css('div.course')
+    for div in divs:
+        detail_url = div.css('a::attr(href)').extract_first()
+        bookid = parse_url_parms(detail_url)['bookid'][0]
+        title = div.css('div.title::text').extract_first()
+        img_url = re.search(r'url\(.+\);', div.css('div.imgDiv::attr(style)').extract_first()).group()[4:-2]
+        tags = []
+        for tag in div.css('div.text::text').extract():
+            tags.append(tag)
+
+        after_url = os.path.abspath(os.path.join(os.path.dirname(urlparse.urlsplit(r.url).path), detail_url))
+
+        netloc = urlparse.urlparse(r.url).netloc
+        scheme = urlparse.urlparse(r.url).scheme
+        full_detail_url = '%s://%s%s' % (scheme, netloc, after_url)
+
+        #print xinyuBook.full_detail_url
+        r = yiyi_request.get(full_detail_url)
+        detail_selector = Selector(response=r)
+        cids = detail_selector.css('div.weui-cell::attr(id)').extract()
+        xinyuBook = XinyuBook(bookid, detail_url, full_detail_url, title, img_url, tags,cids)
+
+        for cid in cids:
+            audio_servlet_url = xinyu_audio_servlet_url(bookid,cid,'')
+            full_audio_servlet_url = '%s://%s%s' % (scheme, netloc, audio_servlet_url)
+            print full_audio_servlet_url
+
+            mp3_url = yiyi_request.get(full_audio_servlet_url).text
+            yiyi_request.download(mp3_url, 'fuck.mp3')
+
+            #print audio_servlet_url
+            #print scheme
+            #print netloc
+
+            exit()
+
+
+
+
 
 
 if __name__ == '__main__':
+    print fuck('96186386000017417387')
+    exit()
 
     # card_url = 'http://www.sslibrary.com/book/card?ssid=96136883&d=ea4be8af9f69453d07c594e4933a0da7&cnFenlei=F276.5&dxid=000016584446&isFromBW=true '
     # cookie_str = 'loginType=certify; username=gzsztsg; account=GY036423; deptid=1078; msign=105132512894418; enc=8e6e4a9eda70155820cf591e084de958; DSSTASH_LOG=C%5f34%2dUN%5f1078%2dUS%5f%2d1%2dT%5f1573472518774; UM_distinctid=16e5a4613ab2ef-060a546b625c3b-1c3c6a5a-13c680-16e5a4613acdb; route=a43339488179d54bb7f54cfa4036b6de; JSESSIONID=5628ABD4020465AA6A2778ACFF7C289C.dsk45_web; ruot=1573489719665'
@@ -304,10 +385,5 @@ if __name__ == '__main__':
     with codecs.open('fuck.html', 'r', encoding='utf-8') as fuck_file:
         html = fuck_file.read()
 
-    # with PyV8.JSContext() as ctxt:
-    #     ctxt.eval(js)
-    #     vars = ctxt.locals
-    #     var_ex1 = vars.fileMark
-    #     print var_ex1
 
     # print type(span)
