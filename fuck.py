@@ -17,8 +17,6 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf8')
 
-
-
 import os
 import codecs
 from bs4 import BeautifulSoup
@@ -33,57 +31,10 @@ import sqlite3
 from PyPDF2 import PdfFileReader, PdfFileWriter
 import sqlite3
 
-# 不想要302重定向直接跳转问题：在get方法里面增加allow_redirects=False
-# cookie以str传入Yiyirequests类，（暂定）
+from YiyiRequests import *
+from YiyiSqlite3 import *
 
-class YiyiRequests:
-    def __init__(self, cookie_str=None):
-        self.s = requests.Session()
-        user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.87 Safari/537.36'
-        self.headers = {'User-Agent': user_agent, }
-        # self.cookies = cookies
-        if cookie_str:
-            self.headers['Cookie'] = cookie_str
-            #self.cookies = cookie_str_2_dict(cookies_str)
-
-    def get(self, url):
-        # print '### Getting...'
-        return self.s.get(url=url, headers=self.headers)
-
-    def download(self, url, path):
-        print '### Downloading...'
-        r = self.get(url)
-        with open(path, 'wb') as downloadfile:
-            downloadfile.write(r.content)
-
-
-
-
-def parse_url_host(url):
-    host = urlparse.urlsplit(url).netloc
-    ralative_path = os.path.dirname(urlparse.urlsplit(url).path)
-    if ralative_path != '/':
-        host = host + ralative_path
-    return host
-
-
-def cookie_str_2_dict(cookie_str):
-    cookies = {}
-    if ';' in cookie_str:
-        for i in cookie_str.split(';'):
-            i = i.strip()
-            key = i.split('=')[0]
-            value = i.split('=')[1]
-            cookies[key] = value
-    return cookies
-
-
-# 使用urlparse解析url,获取query参数字典
-# 这样获取aaid：aaid = parse_url_parms(url)['aid'][0]
-def parse_url_parms(url):
-    # url = 'http://sfjulebu.com/forum.php?mod=attachment&aid=Mjk1MDZ8MDI5ZGJlNjJ8MTUyNDUzMTg2OXwyNDQxOXw5Mjc2&nothumb=yes'
-    parms_dict = urlparse.parse_qs(urlparse.urlsplit(url).query)
-    return parms_dict
+sqlite3db = Sqlite3db('./data/db/fuck.db')
 
 
 def hebingpdf(input_paths, output_path):
@@ -130,8 +81,6 @@ class Book:
         print 'class_code:' + unicode(self.class_code)
         print 'reader_url:' + unicode(self.reader_url)
         print 'book_type:' + unicode(self.book_type)
-
-
 
 
 # 解析card页面，返回图书的信息
@@ -277,8 +226,9 @@ def fuck(card_url, cookie_str=None):
         yiyi_request.download(url, filepath)
         time.sleep(1)
 
+
 class XinyuBook:
-    def __init__(self, bookid,detail_url,full_detail_url,title,img_url,tags,cids):
+    def __init__(self, bookid, detail_url, full_detail_url, title, img_url, tags, cids):
         self.bookid = bookid
         self.detail_url = detail_url
         self.full_detail_url = full_detail_url
@@ -297,7 +247,8 @@ class XinyuBook:
                             title text,
                             img_url text,
                             tags text,
-                            cids text
+                            cids text,
+                            primary key(book_id)
                             );"""
         con = sqlite3.connect('./data/db/fuck.db')
         cur = con.cursor()
@@ -306,6 +257,15 @@ class XinyuBook:
         cur.executescript(sql_template)
         con.commit()
         con.close()
+
+    def insrt(self):
+        sql = 'insert or replace into xinyu_book(book_id,detail_url,full_detail_url,title,img_url,tags,cids)' \
+              'values(?,?,?,?,?,?,?)'
+        values = [self.bookid, self.detail_url, self.full_detail_url, self.title, self.img_url, json.dumps(self.tags),
+                  json.dumps(self.cids)]
+        sqlite3db.get_coon().execute(sql, values)
+        sqlite3db.commit()
+        print '### insert OK!    %s' % self.title
 
 
 def xinyu_audio_servlet_url(bookid, cid, stype):
@@ -316,7 +276,9 @@ def xinyu_audio_servlet_url(bookid, cid, stype):
         ctxt.locals.stype = ''
         ctxt.eval(js)
         return ctxt.locals.audio_servlet_url
-#测试ac加密
+
+
+# 测试ac加密
 def fuck(input):
     with PyV8.JSContext() as ctxt:
         js = open('utils.js', 'r').read()
@@ -328,20 +290,9 @@ def fuck(input):
         return ctxt.locals.fuck
 
 
-
-def fuck_xinyu():
-    index_url = 'http://jt.wx.xinyulib.com.cn/lib/m/index/'
-    cookie_str = 'JSESSIONID=9B90414D73D09097F66A8A88E5D8DA74; state=WO5DQVB9TTZF8KBJK1OU3MO62INK0PT1; xinyu="eyJ1bmFtZSI6IuWMheWktOWMu+WtpumZoiIsInd4ZG9tIjoianQud3gueGlueXVsaWIuY29tLmNuIiwiaXNzaGFyZSI6IjAiLCJ1dHlwZSI6IjAiLCJ0aXRsZSI6IuaWsOivreaVsOWtl+WbvuS5pummhiIsInBhY2siOiJsaWIiLCJ1c2VyaWQiOiI3NzUiLCJzaG93bmFtZSI6IiIsImVib29rIjoiMSIsInBjZG9tIjoianQueGlueXVsaWIuY29tLmNuIiwic2l0ZWlkIjoiMzUiLCJ1bml0aWQiOiIyNzIiLCJsb2dvIjoiIn0="; pubxinyu="eyJzaG93bmFtZSI6IiIsInVuYW1lIjoi5YyF5aS05Yy75a2m6ZmiIiwid3hkb20iOiJqdC53eC54aW55dWxpYi5jb20uY24iLCJwY2RvbSI6Imp0Lnhpbnl1bGliLmNvbS5jbiIsInNpdGVpZCI6IjM1IiwidW5pdGlkIjoiMjcyIiwidGl0bGUiOiLmlrDor63mlbDlrZflm77kuabppoYiLCJwYWNrIjoibGliIn0="'
-    morepage_url_template = 'http://jt.wx.xinyulib.com.cn/lib/m/search/more.jsp?sw=%EF%BC%8C&page=%d'
-    yiyi_request = YiyiRequests(cookie_str=cookie_str)
-
-    morepage_url = morepage_url_template%10
-    r = yiyi_request.get(morepage_url)
-
-    # morefile = open('more.html', 'r')
-    # html = morefile.read()
-    # selector = Selector(text=html)
+def parse_morepage(r):
     selector = Selector(response=r)
+    xinyuBooks = []
     divs = selector.css('div.course')
     for div in divs:
         detail_url = div.css('a::attr(href)').extract_first()
@@ -358,36 +309,48 @@ def fuck_xinyu():
         scheme = urlparse.urlparse(r.url).scheme
         full_detail_url = '%s://%s%s' % (scheme, netloc, after_url)
 
-        #print xinyuBook.full_detail_url
-        r = yiyi_request.get(full_detail_url)
-        detail_selector = Selector(response=r)
-        cids = detail_selector.css('div.weui-cell::attr(id)').extract()
-        xinyuBook = XinyuBook(bookid, detail_url, full_detail_url, title, img_url, tags,cids)
-
-        for cid in cids:
-            audio_servlet_url = xinyu_audio_servlet_url(bookid,cid,'')
-            full_audio_servlet_url = '%s://%s%s' % (scheme, netloc, audio_servlet_url)
-            print full_audio_servlet_url
-
-            mp3_url = yiyi_request.get(full_audio_servlet_url).text
-            yiyi_request.download(mp3_url, 'fuck.mp3')
-
-            #print audio_servlet_url
-            #print scheme
-            #print netloc
-
-            exit()
+        xinyuBook = XinyuBook(bookid, detail_url, full_detail_url, title, img_url, tags, None)
+        xinyuBooks.append(xinyuBook)
+    return xinyuBooks
 
 
+def parse_detail(r):
+    detail_selector = Selector(response=r)
+    cids = detail_selector.css('div.weui-cell::attr(id)').extract()
+    return cids
 
 
+def fuck_xinyu():
+    index_url = 'http://jt.wx.xinyulib.com.cn/lib/m/index/'
+    cookie_str = 'JSESSIONID=B2E73F17B7EEF13DC78229FAE26084B1; state=R9ZA47SK0TMX3Z9CHGHA4JWDA4LQNZDB; xinyu="eyJ1bmFtZSI6IuWMheWktOWMu+WtpumZoiIsInd4ZG9tIjoianQud3gueGlueXVsaWIuY29tLmNuIiwiaXNzaGFyZSI6IjAiLCJ1dHlwZSI6IjAiLCJ0aXRsZSI6IuaWsOivreaVsOWtl+WbvuS5pummhiIsInBhY2siOiJsaWIiLCJ1c2VyaWQiOiI3NzUiLCJzaG93bmFtZSI6IiIsImVib29rIjoiMSIsInBjZG9tIjoianQueGlueXVsaWIuY29tLmNuIiwic2l0ZWlkIjoiMzUiLCJ1bml0aWQiOiIyNzIiLCJsb2dvIjoiIn0="; pubxinyu="eyJzaG93bmFtZSI6IiIsInVuYW1lIjoi5YyF5aS05Yy75a2m6ZmiIiwid3hkb20iOiJqdC53eC54aW55dWxpYi5jb20uY24iLCJwY2RvbSI6Imp0Lnhpbnl1bGliLmNvbS5jbiIsInNpdGVpZCI6IjM1IiwidW5pdGlkIjoiMjcyIiwidGl0bGUiOiLmlrDor63mlbDlrZflm77kuabppoYiLCJwYWNrIjoibGliIn0="'
+    morepage_url_template = 'http://jt.wx.xinyulib.com.cn/lib/m/search/more.jsp?sw=%%EF%%BC%%8C&page=%d'
+    morepage_url_template = 'http://jt.wx.xinyulib.com.cn/lib/m/search/more.jsp?classid=866&page=%d'
+    yiyi_request = YiyiRequests(cookie_str=cookie_str)
+
+    for i in range(1, 150):
+        print '### PAGE---------%d'%i
+        morepage_url = morepage_url_template % i
+        r = yiyi_request.get(morepage_url)
+        xinyuBooks = parse_morepage(r)
+        for xinyuBook in xinyuBooks:
+            r1 = yiyi_request.get(xinyuBook.full_detail_url)
+            cids = parse_detail(r1)
+            xinyuBook.cids = json.dumps(cids)
+            xinyuBook.insrt()
+        time.sleep(1)
+
+    # for cid in cids:
+    #     audio_servlet_url = xinyu_audio_servlet_url(bookid, cid, '')
+    #     full_audio_servlet_url = '%s://%s%s' % (scheme, netloc, audio_servlet_url)
+    #     print full_audio_servlet_url
+    #
+    #     mp3_url = yiyi_request.get(full_audio_servlet_url).text
+    #     yiyi_request.download(mp3_url, 'fuck.mp3')
 
 
 if __name__ == '__main__':
+    # XinyuBook.create_table()
 
-    XinyuBook.create_table()
-
-    exit()
     # card_url = 'http://www.sslibrary.com/book/card?ssid=96136883&d=ea4be8af9f69453d07c594e4933a0da7&cnFenlei=F276.5&dxid=000016584446&isFromBW=true '
     # cookie_str = 'loginType=certify; username=gzsztsg; account=GY036423; deptid=1078; msign=105132512894418; enc=8e6e4a9eda70155820cf591e084de958; DSSTASH_LOG=C%5f34%2dUN%5f1078%2dUS%5f%2d1%2dT%5f1573472518774; UM_distinctid=16e5a4613ab2ef-060a546b625c3b-1c3c6a5a-13c680-16e5a4613acdb; route=a43339488179d54bb7f54cfa4036b6de; JSESSIONID=5628ABD4020465AA6A2778ACFF7C289C.dsk45_web; ruot=1573489719665'
     card_url = 'http://ffhgfc36ddccdc234f5bb9216d41432f11ddhnco0c65fqbp56vo9.fgzi.wap.gxlib.org/book/card?cnFenlei=G899&ssid=11340863&d=cf93ed466df541d847db2f489ca9e264&isFromBW=false&isjgptjs=false'
@@ -409,6 +372,5 @@ if __name__ == '__main__':
     html = ''
     with codecs.open('fuck.html', 'r', encoding='utf-8') as fuck_file:
         html = fuck_file.read()
-
 
     # print type(span)

@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 import sqlite3
 
 import os
@@ -16,5 +17,7 @@ class Sqlite3db:
 
     def __del__(self):
         self.sqlite_conn.close()
+
+
 
 # sqlite3db = Sqlite3db()
