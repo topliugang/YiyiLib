@@ -267,6 +267,22 @@ class XinyuBook:
         sqlite3db.commit()
         print '### insert OK!    %s' % self.title
 
+    @classmethod
+    def select(cls):
+        sql = 'select book_id,detail_url,full_detail_url,title,img_url,tags,cids from xinyu_book order by book_id desc limit 10'
+        cur = sqlite3db.get_coon().cursor()
+        cur.execute(sql)
+        return cur.fetchall()
+
+    def update(self):
+        sql = 'update xinyu_book set detail_url=?,full_detail_url=?,' \
+              'title=?,img_url=?,tags=?,cids=? where book_id=?'
+        values = [self.detail_url, self.full_detail_url, self.title, self.img_url, json.dumps(self.tags),
+                  json.dumps(self.cids), self.bookid]
+        sqlite3db.get_coon().execute(sql, values)
+        sqlite3db.commit()
+        print '### update OK!    %s' % self.title
+
 
 def xinyu_audio_servlet_url(bookid, cid, stype):
     with PyV8.JSContext() as ctxt:
@@ -278,16 +294,7 @@ def xinyu_audio_servlet_url(bookid, cid, stype):
         return ctxt.locals.audio_servlet_url
 
 
-# 测试ac加密
-def fuck(input):
-    with PyV8.JSContext() as ctxt:
-        js = open('utils.js', 'r').read()
-        ctxt.locals.bookid = ''
-        ctxt.locals.cid = ''
-        ctxt.locals.stype = ''
-        ctxt.locals.input = input
-        ctxt.eval(js)
-        return ctxt.locals.fuck
+
 
 
 def parse_morepage(r):
@@ -314,6 +321,7 @@ def parse_morepage(r):
     return xinyuBooks
 
 
+# 这个函数写错了，没有把数据解析成id数组再生成，导致插入数据库出错，json.loads的时候返不回来了
 def parse_detail(r):
     detail_selector = Selector(response=r)
     cids = detail_selector.css('div.weui-cell::attr(id)').extract()
@@ -324,11 +332,37 @@ def fuck_xinyu():
     index_url = 'http://jt.wx.xinyulib.com.cn/lib/m/index/'
     cookie_str = 'JSESSIONID=B2E73F17B7EEF13DC78229FAE26084B1; state=R9ZA47SK0TMX3Z9CHGHA4JWDA4LQNZDB; xinyu="eyJ1bmFtZSI6IuWMheWktOWMu+WtpumZoiIsInd4ZG9tIjoianQud3gueGlueXVsaWIuY29tLmNuIiwiaXNzaGFyZSI6IjAiLCJ1dHlwZSI6IjAiLCJ0aXRsZSI6IuaWsOivreaVsOWtl+WbvuS5pummhiIsInBhY2siOiJsaWIiLCJ1c2VyaWQiOiI3NzUiLCJzaG93bmFtZSI6IiIsImVib29rIjoiMSIsInBjZG9tIjoianQueGlueXVsaWIuY29tLmNuIiwic2l0ZWlkIjoiMzUiLCJ1bml0aWQiOiIyNzIiLCJsb2dvIjoiIn0="; pubxinyu="eyJzaG93bmFtZSI6IiIsInVuYW1lIjoi5YyF5aS05Yy75a2m6ZmiIiwid3hkb20iOiJqdC53eC54aW55dWxpYi5jb20uY24iLCJwY2RvbSI6Imp0Lnhpbnl1bGliLmNvbS5jbiIsInNpdGVpZCI6IjM1IiwidW5pdGlkIjoiMjcyIiwidGl0bGUiOiLmlrDor63mlbDlrZflm77kuabppoYiLCJwYWNrIjoibGliIn0="'
     morepage_url_template = 'http://jt.wx.xinyulib.com.cn/lib/m/search/more.jsp?sw=%%EF%%BC%%8C&page=%d'
-    morepage_url_template = 'http://jt.wx.xinyulib.com.cn/lib/m/search/more.jsp?classid=866&page=%d'
+    morepage_url_template = 'http://jt.wx.xinyulib.com.cn/lib/m/search/more.jsp?classid=866' \
+                            '&page=%d'
     yiyi_request = YiyiRequests(cookie_str=cookie_str)
 
+
+    for row in XinyuBook.select():
+        xinyuBook = XinyuBook(row[0], row[1], row[2], row[3], row[4], json.loads(row[5]), json.loads(row[6]))
+        book_dir = './data/mp3/%s' % (xinyuBook.bookid)
+        if os.path.exists(book_dir):
+            print '### Already exists dir:%s,continue.' % book_dir
+            continue
+            #exit()
+        os.mkdir(book_dir)
+        for cid in xinyuBook.cids:
+            audio_servlet_url = xinyu_audio_servlet_url(xinyuBook.bookid, cid, '')
+            netloc = urlparse.urlparse(xinyuBook.full_detail_url).netloc
+            scheme = urlparse.urlparse(xinyuBook.full_detail_url).scheme
+            full_audio_servlet_url = '%s://%s%s' % (scheme, netloc, audio_servlet_url)
+            print full_audio_servlet_url
+
+            mp3_url = yiyi_request.get(full_audio_servlet_url).text
+            filename = '%s.mp3'%cid
+            filepath = os.path.join(book_dir, filename)
+            yiyi_request.download(mp3_url, filepath)
+            time.sleep(5)
+
+
+    exit()
+
     for i in range(1, 150):
-        print '### PAGE---------%d'%i
+        print '### PAGE---------%d' % i
         morepage_url = morepage_url_template % i
         r = yiyi_request.get(morepage_url)
         xinyuBooks = parse_morepage(r)
@@ -358,6 +392,12 @@ if __name__ == '__main__':
     # fuck(card_url, cookie_str=cookie_str)
 
     fuck_xinyu()
+
+
+
+
+
+
 
     exit()
 

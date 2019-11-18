@@ -161,4 +161,3 @@ function binl2hex(binarray) {
     return str
 }
 audio_servlet_url = "/AudioServlet?bookid="+bookid+"&cid="+cid+"&v=m&stype="+stype+"&enc="+ac(bookid+""+cid);
-fuck = ac(input+"");
