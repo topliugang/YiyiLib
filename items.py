@@ -6,8 +6,15 @@
 # https://doc.scrapy.org/en/latest/topics/items.html
 
 import scrapy
+from YiyiSqlite3 import Sqlite3db
+
+# 原则：数据全部为字符串，list，dict等转换成json字符串
+
+class YiyiItem(scrapy.Item):
+    def select(self, sql):
 
 
+# select insert update delete
 class XinyuBook(scrapy.Item):
     bookid = scrapy.Field()
     detail_url = scrapy.Field()

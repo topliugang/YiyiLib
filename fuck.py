@@ -11,7 +11,8 @@
 # 335762
 
 # 新语授权
-# http://jt.wx.xinyulib.com/lib/m/auth/auth.jsp?u=btyxytsgid&a=C3715256C4499F17D849D1A3CCE91746（免登陆密码链接）需复制链接到微信
+# http://jt.wx.xinyulib.com/lib/m/auth/auth.jsp?u=btyxytsgid&a=C3715256C4499F17D849D1A3CCE91746
+# （免登陆密码链接）需复制链接到微信
 import sys
 
 reload(sys)
@@ -26,7 +27,8 @@ from scrapy.http import HtmlResponse
 import json
 import re
 import time
-from pyv8 import PyV8
+from libs.pyv8 import PyV8
+
 import sqlite3
 from PyPDF2 import PdfFileReader, PdfFileWriter
 import sqlite3
@@ -294,16 +296,13 @@ def xinyu_audio_servlet_url(bookid, cid, stype):
         return ctxt.locals.audio_servlet_url
 
 
-
-
-
 def parse_morepage(r):
     selector = Selector(response=r)
     xinyuBooks = []
     divs = selector.css('div.course')
     for div in divs:
         detail_url = div.css('a::attr(href)').extract_first()
-        bookid = parse_url_parms(detail_url)['bookid'][0]
+        bookid = YiyiRequests.parse_url_parms(detail_url)['bookid'][0]
         title = div.css('div.title::text').extract_first()
         img_url = re.search(r'url\(.+\);', div.css('div.imgDiv::attr(style)').extract_first()).group()[4:-2]
         tags = []
@@ -330,12 +329,11 @@ def parse_detail(r):
 
 def fuck_xinyu():
     index_url = 'http://jt.wx.xinyulib.com.cn/lib/m/index/'
-    cookie_str = 'JSESSIONID=B2E73F17B7EEF13DC78229FAE26084B1; state=R9ZA47SK0TMX3Z9CHGHA4JWDA4LQNZDB; xinyu="eyJ1bmFtZSI6IuWMheWktOWMu+WtpumZoiIsInd4ZG9tIjoianQud3gueGlueXVsaWIuY29tLmNuIiwiaXNzaGFyZSI6IjAiLCJ1dHlwZSI6IjAiLCJ0aXRsZSI6IuaWsOivreaVsOWtl+WbvuS5pummhiIsInBhY2siOiJsaWIiLCJ1c2VyaWQiOiI3NzUiLCJzaG93bmFtZSI6IiIsImVib29rIjoiMSIsInBjZG9tIjoianQueGlueXVsaWIuY29tLmNuIiwic2l0ZWlkIjoiMzUiLCJ1bml0aWQiOiIyNzIiLCJsb2dvIjoiIn0="; pubxinyu="eyJzaG93bmFtZSI6IiIsInVuYW1lIjoi5YyF5aS05Yy75a2m6ZmiIiwid3hkb20iOiJqdC53eC54aW55dWxpYi5jb20uY24iLCJwY2RvbSI6Imp0Lnhpbnl1bGliLmNvbS5jbiIsInNpdGVpZCI6IjM1IiwidW5pdGlkIjoiMjcyIiwidGl0bGUiOiLmlrDor63mlbDlrZflm77kuabppoYiLCJwYWNrIjoibGliIn0="'
+    cookie_str = 'JSESSIONID=1FCBD5774C77F45755215125DCD9751D; state=4W4DH940ZZSNXIBM32LCVHYPDOPR8CLV; xinyu="eyJ1bmFtZSI6IuWMheWktOWMu+WtpumZoiIsInd4ZG9tIjoianQud3gueGlueXVsaWIuY29tLmNuIiwiaXNzaGFyZSI6IjAiLCJ1dHlwZSI6IjAiLCJ0aXRsZSI6IuaWsOivreaVsOWtl+WbvuS5pummhiIsInBhY2siOiJsaWIiLCJ1c2VyaWQiOiI3NzUiLCJzaG93bmFtZSI6IiIsImVib29rIjoiMSIsInBjZG9tIjoianQueGlueXVsaWIuY29tLmNuIiwic2l0ZWlkIjoiMzUiLCJ1bml0aWQiOiIyNzIiLCJsb2dvIjoiIn0="; pubxinyu="eyJzaG93bmFtZSI6IiIsInVuYW1lIjoi5YyF5aS05Yy75a2m6ZmiIiwid3hkb20iOiJqdC53eC54aW55dWxpYi5jb20uY24iLCJwY2RvbSI6Imp0Lnhpbnl1bGliLmNvbS5jbiIsInNpdGVpZCI6IjM1IiwidW5pdGlkIjoiMjcyIiwidGl0bGUiOiLmlrDor63mlbDlrZflm77kuabppoYiLCJwYWNrIjoibGliIn0="'
     morepage_url_template = 'http://jt.wx.xinyulib.com.cn/lib/m/search/more.jsp?sw=%%EF%%BC%%8C&page=%d'
     morepage_url_template = 'http://jt.wx.xinyulib.com.cn/lib/m/search/more.jsp?classid=866' \
                             '&page=%d'
     yiyi_request = YiyiRequests(cookie_str=cookie_str)
-
 
     for row in XinyuBook.select():
         xinyuBook = XinyuBook(row[0], row[1], row[2], row[3], row[4], json.loads(row[5]), json.loads(row[6]))
@@ -343,7 +341,7 @@ def fuck_xinyu():
         if os.path.exists(book_dir):
             print '### Already exists dir:%s,continue.' % book_dir
             continue
-            #exit()
+            # exit()
         os.mkdir(book_dir)
         for cid in xinyuBook.cids:
             audio_servlet_url = xinyu_audio_servlet_url(xinyuBook.bookid, cid, '')
@@ -353,11 +351,10 @@ def fuck_xinyu():
             print full_audio_servlet_url
 
             mp3_url = yiyi_request.get(full_audio_servlet_url).text
-            filename = '%s.mp3'%cid
+            filename = '%s.mp3' % cid
             filepath = os.path.join(book_dir, filename)
             yiyi_request.download(mp3_url, filepath)
             time.sleep(5)
-
 
     exit()
 
@@ -392,12 +389,6 @@ if __name__ == '__main__':
     # fuck(card_url, cookie_str=cookie_str)
 
     fuck_xinyu()
-
-
-
-
-
-
 
     exit()
 
