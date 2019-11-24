@@ -9,7 +9,11 @@ import scrapy
 from YiyiSqlite3 import sqlite3db
 
 
+def item_select():
+
 # 原则：数据全部为字符串，list，dict等转换成json字符串
+
+
 
 class YiyiItem(scrapy.Item):
     table_name = None
@@ -20,13 +24,15 @@ class YiyiItem(scrapy.Item):
 
     @classmethod
     def select(cls):
-        print dir(cls)
+        sb = cls._class()
+        sb['book_id'] = 'sdf'
+        exit()
         yiyiItems = []
         for row in sqlite3db.select('select * from %s limit 10 ' % cls.table_name):
-            yiyiItem = cls.__init__()
-            print yiyiItem
 
-            exit()
+            print
+
+
             for col_names in row.keys():
                 # print col_names
                 yiyiItem[col_names] = row[col_names]
@@ -72,5 +78,6 @@ class ChaoxingBook(scrapy.Item):
 
 
 if __name__ == '__main__':
+    print type(XinyuBook)
     sb = XinyuBook.select()
 
