@@ -45,5 +45,6 @@ class Sqlite3db:
         self.conn.commit()
 
 sqlite3db = Sqlite3db('./data/db/fuck.db')
+#sqlite3db = Sqlite3db('./data/db/test.db')
 
 # 使用 from YiyiSqlite3 import sqlite3db

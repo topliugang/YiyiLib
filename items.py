@@ -9,38 +9,18 @@ import scrapy
 from YiyiSqlite3 import sqlite3db
 
 
-def item_select():
-
 # 原则：数据全部为字符串，list，dict等转换成json字符串
-
 
 
 class YiyiItem(scrapy.Item):
     table_name = None
 
-    def create_table(self):
-        for sb in self.fields:
-            print sb
 
-    @classmethod
-    def select(cls):
-        sb = cls._class()
-        sb['book_id'] = 'sdf'
-        exit()
-        yiyiItems = []
-        for row in sqlite3db.select('select * from %s limit 10 ' % cls.table_name):
-
-            print
+class YiyiFileItem(scrapy.Item):
+    file_path = None
+    filename = scrapy.Field()
 
 
-            for col_names in row.keys():
-                # print col_names
-                yiyiItem[col_names] = row[col_names]
-            yiyiItems.append(yiyiItem)
-        return yiyiItems
-
-
-# select insert update delete
 class XinyuBook(YiyiItem):
     book_id = scrapy.Field()
     detail_url = scrapy.Field()
@@ -50,17 +30,6 @@ class XinyuBook(YiyiItem):
     tags = scrapy.Field()
     cids = scrapy.Field()
     table_name = 'xinyu_book'
-
-    # @classmethod
-    # def select(cls):
-    #     xinyuBooks = []
-    #     for row in sqlite3db.select('select * from xinyu_book limit 10 '):
-    #         xinyuBook = XinyuBook()
-    #         for col_names in row.keys():
-    #             # print col_names
-    #             xinyuBook[col_names] = row[col_names]
-    #         xinyuBooks.append(xinyuBook)
-    #     return xinyuBooks
 
 
 class ChaoxingBook(scrapy.Item):
@@ -77,7 +46,53 @@ class ChaoxingBook(scrapy.Item):
     book_type = scrapy.Field()
 
 
-if __name__ == '__main__':
-    print type(XinyuBook)
-    sb = XinyuBook.select()
+# 获取指定item的数据，传入的为item类名
+def item_select(YiyiItemClassName, sql=None):
+    yiyiItems = []
+    if not sql:
+        sql = 'select * from %s ' % YiyiItemClassName.table_name
+    for row in sqlite3db.select(sql):
+        yiyiItem = YiyiItemClassName()
+        for col_name in row.keys():
+            yiyiItem[col_name] = row[col_name]
+        yiyiItems.append(yiyiItem)
+    return yiyiItems
 
+
+def item_create_table(YiyiItemClassName):
+    field_list = []
+    for field in YiyiItemClassName.fields:
+        field_list.append('%s text' % field)
+    field_str = ','.join(field_list)
+    create_table_sql = 'drop table if exists {0};create table {0}({1});'.format(YiyiItemClassName.table_name, field_str)
+    sqlite3db.create_table(create_table_sql)
+
+
+def item_insert(yiyiItem):
+    # sqlite3db.execute()
+    insert_sql = "insert into {0}({1}) values ({2})".format(yiyiItem.table_name,
+                                                            ', '.join(yiyiItem.fields),
+                                                            ', '.join(['?'] * len(yiyiItem.fields)))
+    # item.key()  item.values()取key 和value
+    values = [yiyiItem[db_columen] for db_columen in yiyiItem.fields]
+    sqlite3db.execute(insert_sql, values)
+
+
+def item_update(yiyiItem, key):
+    field_list = []
+    for field in yiyiItem.fields:
+        field_list.append('%s=?' % field)
+    field_str = ','.join(field_list)
+    update_sql = 'update {0} set {1} where {2}={3}'.format(yiyiItem.table_name, field_str, key, '?')
+    values = [yiyiItem[db_columen] for db_columen in yiyiItem.fields]
+    values.append(yiyiItem[key])
+
+    sqlite3db.execute(update_sql, values)
+
+
+if __name__ == '__main__':
+    # print type(XinyuBook)
+    # sb = XinyuBook.select()
+    items = item_select(XinyuBook)
+    # print items[1]
+    item_insert(items[1])
