@@ -20,9 +20,9 @@ class YiyiRequests:
             self.headers['Cookie'] = cookie_str
             # self.cookies = cookie_str_2_dict(cookies_str)
 
-    def get(self, url):
+    def get(self, url, proxies=None, timeout=None):
         # print '### Getting...'
-        return self.s.get(url=url, headers=self.headers)
+        return self.s.get(url=url, headers=self.headers, proxies=proxies, timeout=timeout)
 
     def download(self, url, path):
         print '### Downloading...'

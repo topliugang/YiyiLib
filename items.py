@@ -45,6 +45,14 @@ class ChaoxingBook(scrapy.Item):
     reader_url = scrapy.Field()
     book_type = scrapy.Field()
 
+class ProxyItem(YiyiItem):
+    ip = scrapy.Field()
+    port = scrapy.Field()
+    niming = scrapy.Field()
+    type = scrapy.Field()
+    site = scrapy.Field()
+    table_name = 'proxy'
+
 
 # 获取指定item的数据，传入的为item类名
 def item_select(YiyiItemClassName, sql=None):
